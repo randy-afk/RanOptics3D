@@ -1,0 +1,52 @@
+site_name: RanOptics3D
+site_url: https://randy-afk.github.io/ranoptics3d/
+repo_url: https://github.com/randy-afk/ranoptics3d
+repo_name: randy-afk/ranoptics3d
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: custom
+    accent: deep orange
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  logo: assets/logo_docs.png
+  favicon: assets/logo_docs.png
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Getting Started: guide/getting-started.md
+    - GUI Walkthrough: guide/gui-walkthrough.md
+    - 3D Viewer: guide/viewer.md
+    - Twiss Inspector: guide/twiss-inspector.md
+    - Navigation & Controls: guide/navigation.md
+  - Reference:
+    - Supported Backends: reference/backends.md
+    - Element Colors: reference/element-colors.md
+    - Known Issues: reference/known-issues.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - attr_list

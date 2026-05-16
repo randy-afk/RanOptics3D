@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "ranoptics3d"
+version = "1.0.0"
+description = "3D accelerator lattice layout viewer (Tao/ELEGANT/xsuite/MAD-X → interactive HTML)"
+authors = [
+  { name = "Randika Gamage", email = "randika@jlab.org" }
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.9"
+
+keywords = [
+  "accelerator", "particle accelerator", "lattice", "beamline",
+  "visualization", "3D", "plotly", "bmad", "tao", "elegant", "madx", "xsuite"
+]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: Visualization",
+]
+
+dependencies = [
+  "numpy>=1.22",
+  "plotly>=5.0",
+]
+
+[project.optional-dependencies]
+gui    = ["PySide6>=6.4"]
+tao    = ["pytao>=0.3"]
+xsuite = ["xsuite>=0.13"]
+all    = ["PySide6>=6.4", "pytao>=0.3", "xsuite>=0.13"]
+
+[project.scripts]
+ranoptics3d = "ranoptics3d.cli:main"
+
+[project.urls]
+Homepage   = "https://github.com/randy-afk/ranoptics3d"
+Repository = "https://github.com/randy-afk/ranoptics3d"
+Issues     = "https://github.com/randy-afk/ranoptics3d/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ranoptics3d*"]
+
+[tool.setuptools.package-data]
+ranoptics3d = [
+  "_panel/control.js",
+  "_panel/panel_template.html",
+]

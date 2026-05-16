@@ -1,0 +1,192 @@
+
+<div id="ranoptics-panel" style="
+    position: fixed; bottom: 0; right: 0; z-index: 999;
+    width: 275px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;">
+
+  <!-- Collapsed tab — always visible at bottom-right edge -->
+  <div id="rop-tab" style="
+      display: none;
+      background: {accent}; color: #1a2f28;
+      padding: 5px 14px; border-radius: 8px 8px 0 0;
+      font-weight: bold; cursor: pointer; user-select: none;
+      float: right; font-size: 12px;">
+    ⚙ Controls ▸
+  </div>
+
+  <!-- Expanded panel — grows upward from bottom-right -->
+  <div id="rop-expanded" style="
+      background: {panel_bg}; color: {panel_fg};
+      border: 1px solid {border}; border-radius: 8px 8px 0 0;
+      max-height: 80vh; display: flex; flex-direction: column;">
+
+    <!-- Header -->
+    <div id="rop-header" style="
+        padding: 6px 10px; cursor: pointer; user-select: none;
+        background: {accent}; color: #1a2f28; border-radius: 8px 8px 0 0;
+        font-weight: bold; display: flex; justify-content: space-between;
+        flex-shrink: 0;">
+      <span>⚙ Live Controls</span>
+      <span id="rop-toggle" style="font-size: 14px;">▾</span>
+    </div>
+
+    <!-- Scrollable body -->
+    <div id="rop-body" style="padding: 8px 10px; overflow-y: auto; flex: 1;">
+
+    <details open><summary style="cursor:pointer;color:{accent};font-weight:600;margin:4px 0;">Element Types</summary>
+      <div id="rop-types"></div>
+    </details>
+
+    <details open><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Highlight Elements</summary>
+      <div style="margin: 4px 0;">
+        <label style="color:{panel_dim};">Name or wildcard (e.g. BPM*, Q?1):</label><br>
+        <input type="text" id="rop-focus" list="rop-elem-list" placeholder="e.g. BPM* or IP1"
+          style="width:100%;background:{input_bg};color:{panel_fg};border:1px solid {border};
+                 border-radius:4px;padding:3px 6px;font-family:monospace;box-sizing:border-box;">
+        <datalist id="rop-elem-list"></datalist>
+      </div>
+      <div style="margin: 4px 0; display: flex; gap: 4px; flex-wrap: wrap;">
+        <button class="rop-btn" id="rop-focus-go">✦ Highlight</button>
+        <button class="rop-btn" id="rop-pivot-reset">✕ Clear all</button>
+      </div>
+      <div id="rop-highlights" style="margin-top:4px;line-height:1.8;"></div>
+    </details>
+
+    <details open><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Camera</summary>
+      <div style="color:{panel_dim};font-size:10px;margin-bottom:4px;">
+        Drag to rotate · Scroll to zoom · Right-drag to pan
+      </div>
+      <div style="margin: 6px 0; display: flex; gap: 3px; flex-wrap: wrap;">
+        <button class="rop-btn" data-cam="iso">Iso</button>
+        <button class="rop-btn" data-cam="top">Top</button>
+        <button class="rop-btn" data-cam="side">Side</button>
+        <button class="rop-btn" data-cam="front">Front</button>
+      </div>
+      <div style="margin: 4px 0; display: flex; gap: 4px; flex-wrap: wrap;">
+        <button class="rop-btn" id="rop-screenshot" title="Download PNG screenshot">📷 Screenshot</button>
+      </div>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Aspect (X / Y / Z)</summary>
+      <div style="color:{panel_dim};font-size:10px;margin-bottom:4px;">
+        Compress / stretch axes. Element boxes don't restretch — this scales the spacing.
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin:3px 0;">
+        <span style="width:12px;color:#ff7777;">X</span>
+        <input type="range" id="rop-sx" min="0.05" max="3" step="0.05" value="1" style="flex:1;">
+        <span id="rop-sx-val" style="width:32px;text-align:right;font-family:monospace;">1.00</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin:3px 0;">
+        <span style="width:12px;color:#77ff77;">Y</span>
+        <input type="range" id="rop-sy" min="0.05" max="3" step="0.05" value="1" style="flex:1;">
+        <span id="rop-sy-val" style="width:32px;text-align:right;font-family:monospace;">1.00</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin:3px 0;">
+        <span style="width:12px;color:#7799ff;">Z</span>
+        <input type="range" id="rop-sz" min="0.05" max="3" step="0.05" value="1" style="flex:1;">
+        <span id="rop-sz-val" style="width:32px;text-align:right;font-family:monospace;">1.00</span>
+      </div>
+      <button class="rop-btn" id="rop-aspect-reset" style="margin-top:4px;">Reset aspect</button>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Twiss Inspector</summary>
+      <div style="color:{panel_dim};font-size:10px;margin-bottom:6px;">
+        Click any element to set Start or End, then open the inspector.
+        Or type element names / s-values directly.
+      </div>
+      <div style="margin:3px 0;">
+        <label style="color:{panel_dim};font-size:10px;">Start (name or s in m):</label>
+        <input type="text" id="rop-twiss-start" list="rop-elem-list"
+          style="width:100%;background:{input_bg};color:{panel_fg};border:1px solid {border};
+                 border-radius:4px;padding:3px 6px;font-family:monospace;box-sizing:border-box;">
+      </div>
+      <div style="margin:3px 0 6px;">
+        <label style="color:{panel_dim};font-size:10px;">End (name or s in m):</label>
+        <input type="text" id="rop-twiss-end" list="rop-elem-list"
+          style="width:100%;background:{input_bg};color:{panel_fg};border:1px solid {border};
+                 border-radius:4px;padding:3px 6px;font-family:monospace;box-sizing:border-box;">
+      </div>
+      <div style="font-size:10px;color:{panel_dim};margin-bottom:4px;" id="rop-twiss-click-hint">
+        Next click → <span id="rop-twiss-next-field" style="color:{accent};">Start</span>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="rop-btn" id="rop-twiss-open">📈 Open inspector</button>
+        <button class="rop-btn" id="rop-twiss-clear-range">✕ Clear</button>
+      </div>
+      <div id="rop-twiss-range-info" style="font-size:10px;color:{panel_dim};margin-top:4px;"></div>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Twiss σ Tube</summary>
+      <div id="rop-twiss-unavail" style="color:{panel_dim};font-size:10px;display:none;">
+        No beta data — set εx/εy in the GUI and re-render.
+      </div>
+      <div id="rop-twiss-controls">
+        <div class="rop-chk" style="margin:3px 0;">
+          <input type="checkbox" id="rop-twiss-tube" checked>
+          <span style="color:#74c0fc;">■</span>&nbsp;σ tube
+        </div>
+        <div class="rop-chk" style="margin:3px 0;">
+          <input type="checkbox" id="rop-twiss-sx" checked>
+          <span style="color:#74c0fc;">—</span>&nbsp;σ_x crosshair
+        </div>
+        <div class="rop-chk" style="margin:3px 0;">
+          <input type="checkbox" id="rop-twiss-sy" checked>
+          <span style="color:#69db7c;">—</span>&nbsp;σ_y crosshair
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin:4px 0;">
+          <span style="color:{panel_dim};font-size:10px;width:60px;">Tube opacity</span>
+          <input type="range" id="rop-twiss-op" min="0" max="1" step="0.05" value="0.35" style="flex:1;">
+          <span id="rop-twiss-op-val" style="font-family:monospace;font-size:10px;width:28px;">0.35</span>
+        </div>
+      </div>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Overlays</summary>
+      <div id="rop-overlays"></div>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Annotations</summary>
+      <div style="color:{panel_dim};font-size:10px;margin-bottom:4px;">
+        Wildcard pattern, comma-separated (e.g. <code>IPM*, BPM*</code>).
+      </div>
+      <input type="text" id="rop-annot" placeholder="(blank = no annotations)"
+        style="width:100%;background:{input_bg};color:{panel_fg};border:1px solid {border};
+               border-radius:4px;padding:3px 6px;font-family:monospace;box-sizing:border-box;">
+      <div id="rop-annot-count" style="color:{panel_dim};font-size:10px;margin-top:3px;"></div>
+    </details>
+
+    <details><summary style="cursor:pointer;color:{accent};font-weight:600;margin:6px 0;">Selected Element</summary>
+      <div id="rop-pin" style="background:{input_bg};border-radius:4px;padding:6px;
+           font-family:monospace;font-size:10px;min-height:60px;color:{panel_dim};">
+        Click any element to pin its info here.
+      </div>
+    </details>
+
+    <div style="margin-top:8px;text-align:center;">
+      <button class="rop-btn" id="rop-reset-all"
+        style="background:#8b0000;color:#fff;border-color:#a00;">Reset all</button>
+    </div>
+
+    </div><!-- end rop-body -->
+  </div><!-- end rop-expanded -->
+</div>
+
+<style>
+  .rop-btn {{
+    background: {input_bg}; color: {panel_fg}; border: 1px solid {border};
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 11px;
+  }}
+  .rop-btn:hover {{ background: {accent}; color: #1a2f28; border-color: {accent}; }}
+  #ranoptics-panel input[type=range] {{ accent-color: {accent}; }}
+  #ranoptics-panel summary::marker {{ color: {accent}; }}
+  #ranoptics-panel details[open] > summary {{ color: {accent}; }}
+  .rop-chk {{ display:flex; align-items:center; gap:4px; margin:2px 0; font-size:11px; }}
+  .rop-chk input[type=range] {{ width: 50px; height: 14px; }}
+  .rop-swatch {{
+    display:inline-block; width:10px; height:10px; border-radius:2px;
+    margin-right:4px; vertical-align:middle;
+  }}
+  #rop-tab {{ clear: right; }}
+</style>
+"""
