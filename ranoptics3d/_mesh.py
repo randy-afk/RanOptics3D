@@ -11,7 +11,9 @@ from ._elements import (element_color, element_legend, make_hover,
                         _MARKER_MONITOR_KEYS, _normalize_key)
 from ._geometry import (_rot_matrix, _box_mesh, _bend_box_mesh,
                         _ellipsoid_mesh, _box_edges, _octahedron_mesh,
-                        _helix_mesh)
+                        _helix_mesh,
+                        _aperture_cylinder_mesh, _aperture_block_mesh,
+                        _ellipse_edges)
 
 def _build_beampipe_tube(elements, radius=0.03, n_sides=12, color='#888888'):
     """Build a cylindrical tube mesh following the beampipe survey path.
@@ -216,7 +218,7 @@ def _build_crosshair_lines(elements, emit_x, emit_y, scale=1.0,
 
 def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                           show_markers=False, bend_segments=12, dark_mode=True,
-                          log_fn=None):
+                          show_outlines=True, log_fn=None):
     """Group elements by type and build Mesh3d + outline Scatter3d traces.
 
     Returns:
@@ -296,8 +298,28 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
         else:
             hw = half_w_default * 0.6; hh = half_h_default * 0.6
 
+        # Magnet size override from file
+        if '_mag_hw' in elem:
+            hw = elem['_mag_hw']
+            hh = elem.get('_mag_hh', hw)
+
         hover = make_hover(elem)
         g, ol = _ensure_group(legend, color)
+
+        # Cylinder shape override — replaces geometry entirely
+        if elem.get('_mag_shape') == 'cylinder':
+            xs, ys, zs, ii, jj, kk = _aperture_cylinder_mesh(
+                x0, y0, z0, theta, phi, L_, radius=hw, radius_y=hh, caps=True)
+            n_vert = len(xs)
+            offset = len(g['xs'])
+            g['xs'].extend(xs); g['ys'].extend(ys); g['zs'].extend(zs)
+            g['i'].extend([v + offset for v in ii])
+            g['j'].extend([v + offset for v in jj])
+            g['k'].extend([v + offset for v in kk])
+            g['hover'].extend([hover] * n_vert)
+            ex, ey, ez = _ellipse_edges(x0, y0, z0, theta, phi, L_, hw, hh)
+            ol['xs'].extend(ex); ol['ys'].extend(ey); ol['zs'].extend(ez)
+            continue
 
         # ── RF/LC cavity — ellipsoid ──────────────────────────────────────
         if 'rfcavity' in kc or 'lcavity' in kc:
@@ -313,13 +335,16 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
             ang = elem.get('angle', 0.0)
             rt  = elem.get('ref_tilt', 0.0)
             is_vbend = abs(abs(rt) - np.pi / 2) < 0.01
+            # ELEGANT: positive angle bends toward -x for horizontal dipoles.
+            # Negate horizontal only so mesh matches floor plan direction.
+            mesh_ang = ang if is_vbend else -ang
             if 'sbend' in kc and abs(ang) > 1e-6:
                 xs, ys, zs, ii, jj, kk = _bend_box_mesh(
-                    x0, y0, z0, theta, phi, L_, ang, hw, hh,
+                    x0, y0, z0, theta, phi, L_, mesh_ang, hw, hh,
                     n_seg=bend_segments, vertical=is_vbend)
-                # Generate per-segment edges to match the curved mesh
+                # Per-segment edges following the curved mesh
                 seg_len = L_ / bend_segments
-                seg_ang = ang / bend_segments
+                seg_ang = mesh_ang / bend_segments
                 cur_x, cur_y, cur_z = x0, y0, z0
                 cur_theta, cur_phi = theta, phi
                 for seg in range(bend_segments):
@@ -362,6 +387,11 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
     ol_color = _outline_color(dark_mode)
     for legend_name in outlines:
         outlines[legend_name]['edge_color'] = ol_color
+    if not show_outlines:
+        for legend_name in outlines:
+            outlines[legend_name]['xs'] = []
+            outlines[legend_name]['ys'] = []
+            outlines[legend_name]['zs'] = []
 
     L(f"[3d] Built mesh groups: {list(groups.keys())} ({skipped} markers/monitors hidden)")
     return groups, outlines, marker_data
@@ -418,3 +448,51 @@ def _read_tunnel_wall(filepath, log_fn=None):
         xo = np.append(xo, xo[0]); yo = np.append(yo, yo[0]); zo = np.append(zo, zo[0])
     L(f"[tunnel] Loaded {len(xi)} wall points (ring={is_ring})")
     return dict(xi=xi, yi=yi, zi=zi, xo=xo, yo=yo, zo=zo, is_ring=is_ring)
+
+
+
+# ─── Aperture mesh builder ────────────────────────────────────────────────────
+
+def _build_aperture_meshes(matched, log_fn=None):
+    """Build aperture overlay meshes from matched aperture entries.
+
+    matched: list of dicts from match_apertures()
+    Returns list of dicts: [{xs, ys, zs, i, j, k, shape}, ...]
+    one per matched element that has floor coordinates.
+    """
+    def L(m):
+        if log_fn: log_fn(m + '\n')
+
+    meshes = []
+    for m in matched:
+        e = m['element']
+        if 'flr_x0' not in e:
+            continue
+        x0    = e['flr_x0']
+        y0    = e['flr_y0']
+        z0    = e['flr_z0']
+        theta = e.get('flr_theta0', 0.0)
+        phi   = e.get('flr_phi0',   0.0)
+        L_    = float(e.get('length', 0.0))
+        if L_ < 1e-9:
+            continue
+
+        ox = m['outer_x']
+        oy = m['outer_y']
+
+        if m['shape'] == 'cylinder':
+            vx, vy, vz, ii, jj, kk = _aperture_cylinder_mesh(
+                x0, y0, z0, theta, phi, L_, radius=ox)
+        else:
+            vx, vy, vz, ii, jj, kk = _aperture_block_mesh(
+                x0, y0, z0, theta, phi, L_, ox, oy)
+
+        meshes.append({
+            'xs': vx, 'ys': vy, 'zs': vz,
+            'i': ii, 'j': jj, 'k': kk,
+            'shape': m['shape'],
+            'name': e['name'],
+        })
+
+    L(f"[aperture] Built {len(meshes)} aperture meshes")
+    return meshes

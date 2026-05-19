@@ -77,6 +77,34 @@ def _box_mesh(x0, y0, z0, theta, phi, length, half_w, half_h):
     return xs, ys, zs, i, j, k
 
 
+def _cross_mesh(x0, y0, z0, theta, phi, length, half_w, half_h, arm_frac=0.4):
+    """Plus/cross shaped mesh for quadrupoles.
+
+    Two overlapping boxes along the beam axis:
+      - horizontal bar: full width (half_w), reduced height (half_h * arm_frac)
+      - vertical bar:   reduced width (half_w * arm_frac), full height (half_h)
+
+    arm_frac controls the thickness of each arm (0.4 = 40% of half dimension).
+    """
+    hw_thin = half_w * arm_frac
+    hh_thin = half_h * arm_frac
+
+    xs1, ys1, zs1, i1, j1, k1 = _box_mesh(
+        x0, y0, z0, theta, phi, length, half_w, hh_thin)   # horizontal bar
+    xs2, ys2, zs2, i2, j2, k2 = _box_mesh(
+        x0, y0, z0, theta, phi, length, hw_thin, half_h)   # vertical bar
+
+    offset = len(xs1)
+    xs = xs1 + xs2
+    ys = ys1 + ys2
+    zs = zs1 + zs2
+    ii = i1 + [v + offset for v in i2]
+    jj = j1 + [v + offset for v in j2]
+    kk = k1 + [v + offset for v in k2]
+    return xs, ys, zs, ii, jj, kk
+
+
+
 def _bend_box_mesh(x0, y0, z0, theta0, phi0, length, angle,
                    half_w, half_h, n_seg=12, vertical=False):
     """Segmented box mesh for a bending dipole.
@@ -296,3 +324,105 @@ def _octahedron_mesh(cx, cy, cz, size):
     jj = [2, 4, 3, 5, 2, 5, 3, 4]
     kk = [4, 3, 5, 2, 4, 2, 5, 3]
     return vx, vy, vz, ii, jj, kk
+
+
+# ─── Aperture meshes ──────────────────────────────────────────────────────────
+
+def _ellipse_edges(x0, y0, z0, theta, phi, length, radius_x, radius_y, n_sides=24):
+    """Outline edges for an elliptical cylinder — two end rings + 4 longitudinal lines."""
+    right, up, fwd = _rot_matrix(theta, phi)
+    right  = np.array(right); up = np.array(up); fwd = np.array(fwd)
+    origin = np.array([x0, y0, z0])
+    end    = origin + fwd * length
+
+    angles = np.linspace(0, 2 * np.pi, n_sides, endpoint=False)
+    xs, ys, zs = [], [], []
+
+    # Entry ring
+    for a in angles:
+        p = origin + radius_x * np.cos(a) * right + radius_y * np.sin(a) * up
+        xs.append(float(p[0])); ys.append(float(p[1])); zs.append(float(p[2]))
+    # Close entry ring
+    p = origin + radius_x * right
+    xs.append(float(p[0])); ys.append(float(p[1])); zs.append(float(p[2]))
+    xs.append(None); ys.append(None); zs.append(None)
+
+    # Exit ring
+    for a in angles:
+        p = end + radius_x * np.cos(a) * right + radius_y * np.sin(a) * up
+        xs.append(float(p[0])); ys.append(float(p[1])); zs.append(float(p[2]))
+    # Close exit ring
+    p = end + radius_x * right
+    xs.append(float(p[0])); ys.append(float(p[1])); zs.append(float(p[2]))
+    xs.append(None); ys.append(None); zs.append(None)
+
+    # 4 longitudinal lines at top, bottom, left, right
+    for a in (0, np.pi/2, np.pi, 3*np.pi/2):
+        pa = origin + radius_x * np.cos(a) * right + radius_y * np.sin(a) * up
+        pb = end    + radius_x * np.cos(a) * right + radius_y * np.sin(a) * up
+        xs += [float(pa[0]), float(pb[0]), None]
+        ys += [float(pa[1]), float(pb[1]), None]
+        zs += [float(pa[2]), float(pb[2]), None]
+
+    return xs, ys, zs
+
+
+def _aperture_cylinder_mesh(x0, y0, z0, theta, phi, length,
+                             radius, radius_y=None, n_sides=24, caps=True):
+    """Cylindrical or elliptical tube mesh for magnet body rendering.
+
+    radius   — semi-axis in the right direction (x)
+    radius_y — semi-axis in the up direction (y), defaults to radius (circle)
+    """
+    right, up, fwd = _rot_matrix(theta, phi)
+    right  = np.array(right)
+    up     = np.array(up)
+    fwd    = np.array(fwd)
+    origin = np.array([x0, y0, z0])
+    end    = origin + fwd * length
+    ry     = radius_y if radius_y is not None else radius
+
+    angles = np.linspace(0, 2 * np.pi, n_sides, endpoint=False)
+    vx, vy, vz = [], [], []
+
+    # Entry ring (indices 0..n_sides-1), exit ring (indices n_sides..2*n_sides-1)
+    for pt in (origin, end):
+        for a in angles:
+            p = pt + radius * np.cos(a) * right + ry * np.sin(a) * up
+            vx.append(float(p[0]))
+            vy.append(float(p[1]))
+            vz.append(float(p[2]))
+
+    # Side faces — two triangles per quad strip segment
+    ii, jj, kk = [], [], []
+    for si in range(n_sides):
+        sn = (si + 1) % n_sides
+        a  = si;          b  = sn
+        c  = si + n_sides; d = sn + n_sides
+        # Triangle 1: a, b, c  Triangle 2: b, d, c
+        ii += [a, b]; jj += [b, d]; kk += [c, c]
+
+    if caps:
+        # Entry cap — center vertex fans to ring
+        ec = len(vx)
+        p = origin
+        vx.append(float(p[0])); vy.append(float(p[1])); vz.append(float(p[2]))
+        for si in range(n_sides):
+            sn = (si + 1) % n_sides
+            ii.append(ec); jj.append(si); kk.append(sn)
+        # Exit cap
+        xc = len(vx)
+        p = end
+        vx.append(float(p[0])); vy.append(float(p[1])); vz.append(float(p[2]))
+        for si in range(n_sides):
+            sn = (si + 1) % n_sides
+            ii.append(xc); jj.append(sn + n_sides); kk.append(si + n_sides)
+
+    return vx, vy, vz, ii, jj, kk
+
+
+def _aperture_block_mesh(x0, y0, z0, theta, phi, length, half_x, half_y):
+    """Box aperture mesh — same as _box_mesh but kept separate for clarity."""
+    return _box_mesh(x0, y0, z0, theta, phi, length, half_x, half_y)
+
+

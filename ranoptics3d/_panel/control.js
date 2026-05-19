@@ -1,3 +1,4 @@
+
 (function() {
   // Wait until the Plotly graph div is fully initialized — we need the
   // .on() event API (added by Plotly) AND the .data array (populated after
@@ -127,6 +128,25 @@
       var idxs = tracesByName(SCENE.overlay_traces[t] || []);
       if (!idxs.length) return;
       Plotly.restyle(gd, {visible: cb.checked ? true : 'legendonly'}, idxs);
+    });
+  });
+
+  // ── Grid toggle ──────────────────────────────────────────────────────
+  var gridRow = document.createElement('div'); gridRow.className = 'rop-chk';
+  gridRow.innerHTML = '<input type="checkbox" id="rop-grid-toggle" checked><span>Grid</span>';
+  overlaysDiv.appendChild(gridRow);
+  document.getElementById('rop-grid-toggle').addEventListener('change', function() {
+    var show = this.checked;
+    Plotly.relayout(gd, {
+      'scene.xaxis.showgrid':        show,
+      'scene.yaxis.showgrid':        show,
+      'scene.zaxis.showgrid':        show,
+      'scene.xaxis.showbackground':  show,
+      'scene.yaxis.showbackground':  show,
+      'scene.zaxis.showbackground':  show,
+      'scene.xaxis.zeroline':        show,
+      'scene.yaxis.zeroline':        show,
+      'scene.zaxis.zeroline':        show,
     });
   });
 

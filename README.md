@@ -8,14 +8,16 @@ An interactive 3D accelerator lattice viewer for accelerator physicists. Reads l
 
 - **Multi-backend support** — Tao/Bmad, ELEGANT, MAD-X, xsuite
 - **Interactive 3D layout** — color-coded elements, beampipe, ground plane, axes gizmo
+- **Magnet size file** — override element dimensions per pattern (block or cylinder shapes)
+- **Solenoid helix geometry** — solenoids rendered as helical coils
 - **Twiss Inspector** — click any element to open an optics popup (β, σ, η, orbit, phase advance)
 - **Multi-universe support** — overlay multiple lattices (e.g. Tao multi-universe)
 - **Element highlighting** — wildcard pattern search and highlight
 - **Annotations** — floating labels on matched elements
-- **Solenoid helix geometry** — solenoids rendered as helical coils
 - **σ tube overlay** — 3D beam envelope tube along the beampipe
 - **Camera presets** — Iso, Top, Side, Front views
 - **PNG screenshot** — export the current view
+- **Grid toggle** — show/hide axis grid from the HTML panel
 
 ---
 
@@ -71,31 +73,50 @@ The output is a self-contained HTML file that opens in any browser.
 
 ---
 
+## Magnet Size File
+
+Override element box dimensions using a definition file:
+
+```
+# name      shape      outer_x(cm)   outer_y(cm)
+MQA*        cylinder   10.0          10.0
+MQB*        block      8.0           12.0
+QF          block      8.0
+```
+
+- `name` — element name pattern, wildcards `*` and `?` supported
+- `shape` — `cylinder` or `block` (default: `block`)
+- `outer_x` — horizontal half-width in cm (default: element_half_width × 100)
+- `outer_y` — vertical half-height in cm (default: `outer_x`)
+- Lines starting with `#` are comments
+
+---
+
 ## GUI Overview
 
 ### Left Panel
 
 **Input tab** — Select backend, input file, and output path.
 
-**Range & Universes tab** — Select s-range and which universes to plot (for multi-universe Tao lattices).
+**Range & Universes tab** — Select s-range and which universes to plot.
 
-**Beam & Inspector tab** — Set emittances (εx, εy) and energy spread. Select which optics panels to show in the Twiss Inspector. Toggle the σ tube overlay.
+**Beam & Inspector tab** — Set emittances, select Twiss Inspector panels, configure σ tube overlay, load magnet size file.
 
 ### In-Browser Control Panel
 
-**Highlight Elements** — Type an element name or wildcard (e.g. `QF*`, `BPM01`) and click ✦ Highlight to mark matching elements in the 3D view.
+**Highlight Elements** — Type an element name or wildcard (e.g. `QF*`, `BPM01`) and click ✦ Highlight.
 
 **Camera** — Preset views (Iso, Top, Side, Front) and PNG screenshot.
 
-**Aspect** — Scale X/Y/Z axes independently for flat or elongated lattices.
+**Aspect** — Scale X/Y/Z axes independently.
 
-**Overlays** — Toggle beampipe, σ tube, ground plane, axes gizmo, and individual element types.
+**Overlays** — Toggle beampipe, σ tube, ground plane, axes gizmo, grid, and individual element types.
 
-**Annotations** — Add floating text labels to elements matching a pattern.
+**Annotations** — Add floating labels to elements matching a pattern.
 
-**Twiss Inspector** — Click elements in the 3D view to set a start/end s-range, then open a popup with optics plots for that range.
+**Twiss Inspector** — Click elements to set s-range, open optics popup.
 
-**Selected Element** — Click any element to pin its info (name, type, length, K1, angle, s-position).
+**Selected Element** — Click any element to pin its info.
 
 ---
 
@@ -125,15 +146,18 @@ The output is a self-contained HTML file that opens in any browser.
 
 ## Known Issues
 
-- Short solenoids (< ~0.5m) render as a donut shape rather than a helix due to having less than one full turn.
-- Twiss inspector optics show incorrect data for some specific ELEGANT lattices (element ordering issue — under investigation).
+- Short solenoids (< ~0.5m) render as a donut shape due to less than one full turn.
+- Twiss inspector shows incorrect data for some specific ELEGANT lattices (under investigation).
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
 ## Author
 
-Randika Gamage (randika@jlab.org)
-
-## Support
-
-Good luck, I believe in you.
+Randika Gamage (randika@jlab.org)  
+Good luck, I believe in you

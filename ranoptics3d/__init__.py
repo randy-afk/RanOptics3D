@@ -18,9 +18,9 @@ Quick start
     ranoptics3d --gui
 """
 
-__version__ = '1.0.0'
-__author__  = 'Randika Gamage'
-__email__   = 'randika@jlab.org'
+__version__ = '1.1.0'
+__author__  = 'Randika Gamage (randika@jlab.org)'
+__support__ = r'¯\_(ツ)_/¯  (good luck, I believe in you)'
 __license__ = 'MIT'
 
 from ._plot import plot_optics_3d, compute_lattice_stats

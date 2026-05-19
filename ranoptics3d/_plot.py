@@ -15,7 +15,9 @@ from ._elements  import element_color, element_legend, make_hover, _MARKER_MONIT
 from ._geometry  import _rot_matrix
 from ._mesh      import (_build_beampipe_trace, _build_beampipe_tube,
                          _build_twiss_tube,
-                         _build_crosshair_lines, _build_element_meshes)
+                         _build_crosshair_lines, _build_element_meshes,
+                         _build_aperture_meshes)
+from ._aperture  import parse_aperture_file, match_apertures
 from ._backends  import load_tao, load_elegant, load_xsuite, load_madx
 from ._panel.builder import build_control_panel
 
@@ -168,6 +170,8 @@ def plot_optics_3d(
     element_half_width=0.2,
     element_half_height=0.2,
     show_beampipe=True,
+    show_outlines=True,        # show white edge outlines on elements
+    aperture_file=None,        # path to magnet size definition file
     beampipe_color='#888888',
     beampipe_width=2,
     show_markers=False,
@@ -306,6 +310,33 @@ def plot_optics_3d(
     else:
         plot_unis = list(all_uni.keys())
     multi = len(plot_unis) > 1
+
+    # ── Magnet size override ──────────────────────────────────────────────────
+    # Parse magnet size file and tag matching elements with _mag_hw/_mag_hh
+    # BEFORE the universe loop so mesh building picks them up.
+    if aperture_file:
+        try:
+            import fnmatch as _fnmatch
+            entries = parse_aperture_file(aperture_file)
+            n_matched = 0
+            for uid in plot_unis:
+                for e in all_uni[uid]['elements']:
+                    ename = e['name'].split('\\')[-1].upper()
+                    for entry in entries:
+                        if _fnmatch.fnmatch(ename, entry['pattern'].upper()):
+                            default_cm = element_half_width * 100.0
+                            ox = (entry['outer_x'] if entry['outer_x'] is not None
+                                  else default_cm) / 100.0
+                            oy = (entry['outer_y'] if entry['outer_y'] is not None
+                                  else ox) / 100.0 if entry['outer_y'] is not None else ox
+                            e['_mag_hw']    = ox
+                            e['_mag_hh']    = oy
+                            e['_mag_shape'] = entry['shape']
+                            n_matched += 1
+                            break
+            L(f"[magnet size] {n_matched} elements sized from {aperture_file}")
+        except Exception as ap_err:
+            L(f"[magnet size] Failed to load file: {ap_err}")
 
     # ── Optional tunnel wall ─────────────────────────────────────────────────
     tunnel = None
@@ -490,6 +521,7 @@ def plot_optics_3d(
             show_markers=show_markers,
             bend_segments=bend_segments,
             dark_mode=dark_mode,
+            show_outlines=show_outlines,
             log_fn=log_fn,
         )
 
@@ -832,3 +864,5 @@ def plot_optics_3d(
         import webbrowser
         webbrowser.open(f"file://{Path(output_file).resolve()}")
     return fig
+
+

@@ -437,8 +437,8 @@ if _HAVE_PYSIDE:
             rf = QWidget(); rf.setStyleSheet("background: transparent;")
             rv = QVBoxLayout(rf); rv.setContentsMargins(0, 0, 0, 0); rv.setSpacing(2)
             for t in ("Author: Randika Gamage (randika@jlab.org)",
-                      "Support: ¯\\_(ツ)_/¯  (good luck, I believe in you)"):
-                l = QLabel(t); l.setFont(self.FONT_SMALL); l.setAlignment(Qt.AlignRight)
+                      "Support: Good luck, I believe in you"):
+                l = QLabel(t); l.setFont(self.FONT_SMALL); l.setAlignment(Qt.AlignLeft)
                 l.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
                 rv.addWidget(l)
             row.addWidget(rf)
@@ -819,6 +819,14 @@ if _HAVE_PYSIDE:
                   "Markers and monitors are zero-length — boxes for them are tiny. "
                   "Off by default.", self.FONT_SMALL)
 
+            r = _row(layout)
+            self.w_show_outlines = _chk(r, "Show element outlines",
+                                         self.FONT_MAIN, self.SS['chk'])
+            self.w_show_outlines.setChecked(True)
+            _help(layout,
+                  "White edge lines on elements. Turn off to hide segment "
+                  "outlines on curved dipoles.", self.FONT_SMALL)
+
             _sec(layout, "Mirror", self.FONT_SEC)
             r = _row(layout)
             self.w_flip_bend = _chk(r, "Flip bend direction (mirror X)",
@@ -898,6 +906,16 @@ if _HAVE_PYSIDE:
             _lbl(r, "σ_y color", self.FONT_MAIN, width=60)
             self.w_twiss_cy = _ent(r, self.FONT_MONO, self.SS['entry'], width=90)
             self.w_twiss_cy.setText("#69db7c")
+
+            _sec(layout, "Magnet Size", self.FONT_SEC)
+            _help(layout,
+                  "Load an aperture definition file to overlay magnet apertures "
+                  "in the 3D view. Format: name  shape  outer_x  outer_y",
+                  self.FONT_SMALL)
+            r = _row(layout); _lbl(r, "Magnet size file", self.FONT_MAIN)
+            self.w_aperture_file = _ent(r, self.FONT_MONO, self.SS['entry'],
+                                        width=200, placeholder="path/to/magnet_sizes.dat")
+            _btn(r, "Browse", self._browse_aperture, self.FONT_MAIN, width=70)
 
         # ── Overlays section ──────────────────────────────────────────────────
 
@@ -1044,6 +1062,13 @@ if _HAVE_PYSIDE:
             if f:
                 self.w_tunnel_file.setText(f)
 
+        def _browse_aperture(self):
+            f, _ = QFileDialog.getOpenFileName(
+                self, "Select aperture definition file", "",
+                "Data files (*.dat *.txt *.csv);;All files (*.*)")
+            if f:
+                self.w_aperture_file.setText(f)
+
         def _browse_output(self):
             f, _ = QFileDialog.getSaveFileName(
                 self, "Save output HTML", "optics3d.html",
@@ -1106,6 +1131,7 @@ if _HAVE_PYSIDE:
                 beampipe_color=self.w_pipe_color.text().strip() or "#888888",
                 beampipe_width=_i(self.w_pipe_width, 2),
                 show_markers=self.w_show_markers.isChecked(),
+                show_outlines=self.w_show_outlines.isChecked(),
                 bend_segments=_i(self.w_bend_seg, 12),
                 dark_mode=self.w_dark.isChecked(),
                 show=False,
@@ -1134,6 +1160,7 @@ if _HAVE_PYSIDE:
                 focus_radius=_f(self.w_focus_radius, None),
                 add_control_panel=self.w_control_panel.isChecked(),
                 show_twiss=self.w_show_twiss.isChecked(),
+                aperture_file=self.w_aperture_file.text().strip() or None,
                 emit_x=_f(self.w_emit_x, None),
                 emit_y=_f(self.w_emit_y, None),
                 sigma_dp=_f(self.w_sigma_dp, None),

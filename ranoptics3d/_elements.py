@@ -347,3 +347,4 @@ def _octahedron_mesh(cx, cy, cz, size):
     jj = [2, 4, 3, 5, 2, 5, 3, 4]
     kk = [4, 3, 5, 2, 4, 2, 5, 3]
     return vx, vy, vz, ii, jj, kk
+
