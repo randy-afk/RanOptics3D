@@ -3,6 +3,10 @@ site_url: https://randy-afk.github.io/ranoptics3d/
 repo_url: https://github.com/randy-afk/ranoptics3d
 repo_name: randy-afk/ranoptics3d
 
+docs_dir: docs
+exclude_docs: |
+  assets/*.html
+  
 theme:
   name: material
   palette:
