@@ -1,0 +1,1921 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://randy-afk.github.io/ranoptics3d/guide/gui-walkthrough/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../viewer/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logo_docs.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>GUI Walkthrough - RanOptics3D</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gui-walkthrough" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="RanOptics3D" class="md-header__button md-logo" aria-label="RanOptics3D" data-md-component="logo">
+      
+  <img src="../../assets/logo_docs.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RanOptics3D
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              GUI Walkthrough
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/randy-afk/ranoptics3d" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    randy-afk/ranoptics3d
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/backends/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="RanOptics3D" class="md-nav__button md-logo" aria-label="RanOptics3D" data-md-component="logo">
+      
+  <img src="../../assets/logo_docs.png" alt="logo">
+
+    </a>
+    RanOptics3D
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/randy-afk/ranoptics3d" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    randy-afk/ranoptics3d
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GUI Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GUI Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#left-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Left Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Left Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-universes-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range &amp; Universes Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-inspector-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beam &amp; Inspector Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#right-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Right Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Right Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3d-view-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D View Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3D View Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#axis-aspect-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis Aspect &amp; Scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera &amp; Convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#focus-pivot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Focus &amp; Pivot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beampipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beampipe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elements-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elements Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Elements Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-box-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Box Size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bend-smoothness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bend Smoothness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visibility-opacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visibility &amp; Opacity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mirror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mirror
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overlays-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overlays Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overlays Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tunnel-wall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tunnel Wall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ground-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ground Plane
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bottom-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bottom Bar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#live-control-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Control Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../viewer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3D Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../twiss-inspector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Twiss Inspector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation & Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/element-colors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element Colors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/magnet-size-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Magnet Size File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/known-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Known Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#left-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Left Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Left Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-universes-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range &amp; Universes Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-inspector-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beam &amp; Inspector Tab
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#right-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Right Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Right Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3d-view-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D View Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3D View Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#axis-aspect-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis Aspect &amp; Scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera &amp; Convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#focus-pivot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Focus &amp; Pivot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beampipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beampipe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elements-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elements Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Elements Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-box-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Box Size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bend-smoothness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bend Smoothness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visibility-opacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visibility &amp; Opacity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mirror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mirror
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overlays-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overlays Tab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overlays Tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#element-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tunnel-wall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tunnel Wall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ground-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ground Plane
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bottom-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bottom Bar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#live-control-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Control Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="gui-walkthrough">GUI Walkthrough</h1>
+<p>The GUI is split into two panels. The <strong>left panel</strong> controls what to load and how to interpret the beam. The <strong>right panel</strong> controls how the 3D scene is rendered. Configure both before clicking <strong>▶ Render 3D</strong>.</p>
+<p><img alt="RanOptics3D GUI" src="../../assets/gui.png" /></p>
+<hr />
+<h2 id="left-panel">Left Panel</h2>
+<h3 id="input-tab">Input Tab</h3>
+<p>Select your backend, point to your input file, and configure output.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input file</strong></td>
+<td>Path to your lattice file — see <a href="../../reference/backends/">Supported Backends</a>. Auto-detected from extension: <code>.init</code> → Tao, <code>.ele</code> → ELEGANT, <code>.json</code> → xsuite, <code>.tfs</code> → MAD-X</td>
+</tr>
+<tr>
+<td><strong>Code backend</strong></td>
+<td>Backend override. Normally auto-detected — only set manually if your file has a non-standard extension</td>
+</tr>
+<tr>
+<td><strong>Output HTML</strong></td>
+<td>Filename for the generated <code>.html</code> file. Open in any browser to view the 3D scene</td>
+</tr>
+<tr>
+<td><strong>Save as</strong></td>
+<td>Choose a different output path or filename</td>
+</tr>
+<tr>
+<td><strong>Plot title</strong></td>
+<td>Optional title embedded in the rendered HTML</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="range-universes-tab">Range &amp; Universes Tab</h3>
+<p>For multi-universe lattices such as Tao configurations with multiple rings.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Universe selector</strong></td>
+<td>Choose which universes to include in the plot</td>
+</tr>
+<tr>
+<td><strong>s-range</strong></td>
+<td>Restrict the rendered lattice to a specific s interval (meters)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For single-universe lattices (most ELEGANT and MAD-X cases) this tab can be left at defaults.</p>
+</div>
+<hr />
+<h3 id="beam-inspector-tab">Beam &amp; Inspector Tab</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>εx, εy</strong></td>
+<td>Horizontal and vertical normalized emittances for beam size calculations</td>
+</tr>
+<tr>
+<td><strong>Energy spread</strong></td>
+<td>σ_δ used for the σ tube overlay</td>
+</tr>
+<tr>
+<td><strong>Optics panels</strong></td>
+<td>Toggle which plots appear in the Twiss Inspector: β, σ, η, orbit, phase advance</td>
+</tr>
+<tr>
+<td><strong>σ tube</strong></td>
+<td>Enable/disable the 3D beam envelope tube overlay</td>
+</tr>
+<tr>
+<td><strong>Magnet size file</strong></td>
+<td>Load a definition file to override element box dimensions — see <a href="../../reference/magnet-size-file/">Magnet Size File</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="right-panel">Right Panel</h2>
+<h3 id="3d-view-tab">3D View Tab</h3>
+<p>Controls the overall appearance and camera behavior of the rendered scene.</p>
+<h4 id="axis-aspect-scale">Axis Aspect &amp; Scale</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Aspect mode</strong></td>
+<td><code>data</code> preserves true proportions. <code>manual</code> lets you scale each axis independently using the X/Y/Z scale fields. <code>cube</code> forces equal axes (rarely useful)</td>
+</tr>
+<tr>
+<td><strong>X / Y / Z scale</strong></td>
+<td>Active only in <code>manual</code> mode. Scale &lt; 1 compresses an axis, scale &gt; 1 stretches it. Useful when a lattice is very long in one dimension — e.g. set Z=0.5 to display an 80 m lattice as if it were 40 m long</td>
+</tr>
+</tbody>
+</table>
+<h4 id="camera-convention">Camera &amp; Convention</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Camera preset</strong></td>
+<td>Initial view on load: <code>iso</code>, <code>top</code>, <code>side</code>, or <code>front</code>. The HTML viewer allows free rotation regardless of this setting</td>
+</tr>
+<tr>
+<td><strong>Z-up convention</strong></td>
+<td>When checked, Z is the vertical axis (matches MAD-X surveyors). Default is Y-up, which matches Bmad/pytao</td>
+</tr>
+</tbody>
+</table>
+<h4 id="focus-pivot">Focus &amp; Pivot</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Focus on element</strong></td>
+<td>Element name to center the rotation pivot on (e.g. <code>IP1</code>, <code>QF12</code>). Dragging in the browser will orbit around that element instead of the lattice center</td>
+</tr>
+<tr>
+<td><strong>Focus radius (m)</strong></td>
+<td>If set, also crops the view to within this radius of the focus element</td>
+</tr>
+<tr>
+<td><strong>Camera eye x,y,z</strong></td>
+<td>Override the camera eye position directly. Hover the modebar in any rendered HTML, drag to your preferred view, then read the eye position from the toolbar tooltip and paste here for exact reproducibility</td>
+</tr>
+</tbody>
+</table>
+<h4 id="theme">Theme</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dark mode</strong></td>
+<td>Renders the scene with a dark background</td>
+</tr>
+<tr>
+<td><strong>Show XYZ axis gizmo at origin</strong></td>
+<td>Displays a small XYZ orientation indicator at the world origin</td>
+</tr>
+<tr>
+<td><strong>Embed live control panel in HTML</strong></td>
+<td>Adds an interactive sidebar to the rendered HTML — no re-render needed to use it. See <a href="#live-control-panel">Live Control Panel</a> below</td>
+</tr>
+</tbody>
+</table>
+<h4 id="beampipe">Beampipe</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Show beampipe centerline</strong></td>
+<td>Draws a line along the beam path through the lattice</td>
+</tr>
+<tr>
+<td><strong>Pipe color</strong></td>
+<td>Hex color for the centerline (default <code>#888888</code>)</td>
+</tr>
+<tr>
+<td><strong>Width</strong></td>
+<td>Line width of the beampipe centerline</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="elements-tab">Elements Tab</h3>
+<p>Controls the geometry and visibility of individual element types in the 3D scene.</p>
+<h4 id="element-box-size">Element Box Size</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Half-width (m)</strong></td>
+<td>Transverse horizontal half-size of element boxes in beam-frame coordinates. Tune smaller for tight lattices, larger for visibility</td>
+</tr>
+<tr>
+<td><strong>Half-height (m)</strong></td>
+<td>Transverse vertical half-size of element boxes</td>
+</tr>
+</tbody>
+</table>
+<h4 id="bend-smoothness">Bend Smoothness</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Segments per bend</strong></td>
+<td>Number of straight segments used to approximate each dipole arc. Higher values produce smoother curves but increase file size and render time</td>
+</tr>
+</tbody>
+</table>
+<h4 id="visibility-opacity">Visibility &amp; Opacity</h4>
+<p>Each element type (Dipole, Quadrupole, Sextupole, Octupole, Kicker, Monitor, RF Cavity, Solenoid, Marker) has a checkbox and an opacity slider.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Checkbox</strong></td>
+<td>Uncheck to hide that element type entirely</td>
+</tr>
+<tr>
+<td><strong>Opacity</strong></td>
+<td>0.0–1.0. Partial values fade elements — useful for focusing attention on specific magnet families</td>
+</tr>
+<tr>
+<td><strong>Include markers/monitors as boxes</strong></td>
+<td>Markers and monitors are zero-length elements; by default they are not drawn as boxes. Enable this to render them as small boxes</td>
+</tr>
+<tr>
+<td><strong>Show element outlines</strong></td>
+<td>Draws white edge lines on element boxes. Turn off to hide segment outlines on curved dipoles for a cleaner look</td>
+</tr>
+</tbody>
+</table>
+<h4 id="mirror">Mirror</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Flip bend direction (mirror X)</strong></td>
+<td>Mirrors the lattice layout along X. Useful when the survey coordinate handedness doesn't match your expected orientation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="overlays-tab">Overlays Tab</h3>
+<p>Controls additional geometry overlaid on the 3D scene.</p>
+<h4 id="element-annotations">Element Annotations</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pattern</strong></td>
+<td>Comma-separated wildcard patterns matching element names (e.g. <code>IPM*, BPM*, IP*</code>). Adds floating 3D text labels at all matching elements</td>
+</tr>
+<tr>
+<td><strong>Font size</strong></td>
+<td>Size of the 3D annotation text</td>
+</tr>
+</tbody>
+</table>
+<h4 id="tunnel-wall">Tunnel Wall</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wall coord file</strong></td>
+<td>Path to a <code>.dat</code> file defining the tunnel wall geometry. Format: one line per point — <code>x_in y_in z_in x_out y_out z_out</code></td>
+</tr>
+<tr>
+<td><strong>Draw tunnel wall</strong></td>
+<td>Enable/disable rendering of the tunnel wall surface</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ground-plane">Ground Plane</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Draw ground plane</strong></td>
+<td>Renders a flat ground plane at the specified Y position</td>
+</tr>
+<tr>
+<td><strong>Ground Y position</strong></td>
+<td>Vertical position of the ground plane in survey coordinates</td>
+</tr>
+<tr>
+<td><strong>Show grid on ground</strong></td>
+<td>Overlays a grid on the ground plane for spatial orientation. Place it at the floor of your tunnel</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bottom-bar">Bottom Bar</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>▶ Render 3D</strong></td>
+<td>Build the full 3D scene and write the output HTML file</td>
+</tr>
+<tr>
+<td><strong>Open in browser</strong></td>
+<td>Open the last rendered HTML file in your default browser</td>
+</tr>
+<tr>
+<td><strong>Inspect</strong></td>
+<td>Dry-run that loads the lattice and reports element counts by type without rendering. Useful for verifying the correct file and universe are loaded before a full render</td>
+</tr>
+<tr>
+<td><strong>Clear log</strong></td>
+<td>Clear the output log panel</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="live-control-panel">Live Control Panel</h2>
+<p>When <strong>Embed live control panel in HTML</strong> is enabled in the 3D View tab, the rendered HTML includes a collapsible sidebar with real-time controls — no re-render required.</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Element Types</strong></td>
+<td>Per-type visibility checkboxes and opacity sliders — same as the Elements tab but adjustable live in the browser</td>
+</tr>
+<tr>
+<td><strong>Highlight Elements</strong></td>
+<td>Wildcard name pattern to highlight matching elements (e.g. <code>BPM*</code>, <code>IP1</code>)</td>
+</tr>
+<tr>
+<td><strong>Camera</strong></td>
+<td>Rotation/zoom instructions, preset view buttons (Iso, Top, Side, Front), and Screenshot</td>
+</tr>
+<tr>
+<td><strong>Aspect (X / Y / Z)</strong></td>
+<td>Live axis scale sliders. Compresses or stretches axes without re-rendering. Note: element boxes do not resize — only the spacing scales</td>
+</tr>
+<tr>
+<td><strong>Twiss Inspector</strong></td>
+<td>Click any element in the scene to set it as Start or End, then open the inspector. Or type element names or s-values directly</td>
+</tr>
+<tr>
+<td><strong>Twiss σ Tube</strong></td>
+<td>Reminder to set εx/εy in the GUI and re-render if no beta data is present</td>
+</tr>
+<tr>
+<td><strong>Overlays</strong></td>
+<td>Toggle Beampipe, Axes gizmo, and Grid live</td>
+</tr>
+<tr>
+<td><strong>Annotations</strong></td>
+<td>Wildcard pattern for live element labels — updates without re-rendering</td>
+</tr>
+<tr>
+<td><strong>Selected Element</strong></td>
+<td>Click any element in the scene to pin its name and properties here</td>
+</tr>
+<tr>
+<td><strong>Reset all</strong></td>
+<td>Resets all live panel controls to their render-time defaults</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
