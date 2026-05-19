@@ -10,14 +10,16 @@ with an in-browser control panel.
 
 - **Multi-backend support** — Tao/Bmad, ELEGANT, MAD-X, xsuite
 - **Interactive 3D layout** — color-coded elements, beampipe, ground plane, axes gizmo
+- **Magnet size file** — override element dimensions per pattern (block or cylinder shapes)
+- **Solenoid helix geometry** — solenoids rendered as helical coils
 - **Twiss Inspector** — click any element to open an optics popup (β, σ, η, orbit, phase advance)
 - **Multi-universe support** — overlay multiple lattices (e.g. Tao multi-universe)
 - **Element highlighting** — wildcard pattern search and highlight
 - **Annotations** — floating labels on matched elements
-- **Solenoid helix geometry** — solenoids rendered as helical coils
 - **σ tube overlay** — 3D beam envelope tube along the beampipe
 - **Camera presets** — Iso, Top, Side, Front views
 - **PNG screenshot** — export the current view
+- **Grid toggle** — show/hide axis grid from the HTML panel
 
 ---
 

@@ -48,6 +48,7 @@ Toggle visibility of:
 - σ tube (beam envelope)
 - Ground plane
 - Axes gizmo
+- Grid (Plotly axis grid and background planes)
 - Individual element types
 
 ---

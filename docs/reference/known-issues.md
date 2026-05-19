@@ -19,8 +19,7 @@ only the visual geometry is affected.
 **Symptom:** The Twiss Inspector optics popup shows incorrect data (large spikes)
 for some specific ELEGANT lattices. Other lattices are unaffected.
 
-**Status:** Under investigation. Likely an element-ordering or lord/slave issue
-in the affected run.
+**Status:** Under investigation. Likely an element-ordering issue in the affected run.
 
 **Workaround:** Use [RanOptics](https://github.com/randy-afk/ranoptics) (2D) for
 optics inspection on the affected lattice in the meantime.
@@ -28,5 +27,5 @@ optics inspection on the affected lattice in the meantime.
 ---
 
 !!! tip "Reporting issues"
-    Open an issue on the [GitHub repository](https://github.com/randy-afk/ranoptics3d)
+    Open an issue on the [GitHub repository](https://github.com/randy-afk/RanOptics3D)
     with your backend, lattice file type, and a description of the problem.

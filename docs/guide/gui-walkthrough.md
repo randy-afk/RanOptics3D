@@ -39,3 +39,4 @@ For multi-universe lattices such as Tao configurations with multiple rings.
 | **Energy spread** | σ_δ used for the σ tube overlay |
 | **Optics panels** | Toggle which plots appear in the Twiss Inspector: β, σ, η, orbit, phase advance |
 | **σ tube** | Enable/disable the 3D beam envelope tube overlay |
+| **Magnet size file** | Load a definition file to override element box dimensions — see [Magnet Size File](../reference/magnet-size-file.md) |
