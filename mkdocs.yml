@@ -4,9 +4,6 @@ repo_url: https://github.com/randy-afk/RanOptics3D
 repo_name: randy-afk/RanOptics3D
 docs_dir: docs
 
-not_in_nav: |
-  assets/*.html
-
 theme:
   name: material
   palette:
