@@ -1,8 +1,7 @@
 site_name: RanOptics3D
-site_url: https://randy-afk.github.io/RanOptics3D/
-repo_url: https://github.com/randy-afk/RanOptics3D
-repo_name: randy-afk/RanOptics3D
-docs_dir: docs
+site_url: https://randy-afk.github.io/ranoptics3d/
+repo_url: https://github.com/randy-afk/ranoptics3d
+repo_name: randy-afk/ranoptics3d
 
 theme:
   name: material
