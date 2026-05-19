@@ -428,7 +428,7 @@ if _HAVE_PYSIDE:
             name_lbl.setFont(self.FONT_HDR)
             name_lbl.setStyleSheet("background: transparent;")
             tv.addWidget(name_lbl)
-            sub = QLabel("3D Lattice Layout Viewer  •  v1.0.0")
+            sub = QLabel("3D Lattice Layout Viewer  •  v1.1.0")
             sub.setFont(self.FONT_SMALL)
             sub.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
             tv.addWidget(sub)
