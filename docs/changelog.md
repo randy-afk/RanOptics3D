@@ -2,6 +2,30 @@
 
 ---
 
+## v1.2.0 — 2026-07-31
+
+### New Features
+
+- **Offline HTML option** — new `embed_plotlyjs` parameter (GUI: "Fully self-contained HTML" checkbox in the 3D View tab; CLI: `--offline`) controls whether the output HTML embeds Plotly.js directly (~4 MB larger, works with no internet connection) or loads it from a CDN (small file, needs internet on first view — the previous, still-default behavior).
+
+### Fixed
+
+- Tunnel wall rendering (`show_tunnel` / `tunnel_wall_file`) was completely broken — `_mesh.py` used `re.split()` without importing `re`, so every call raised internally and was silently swallowed by a broad exception handler. The wall never rendered and no error surfaced anywhere in the UI.
+- `pip install .` and `pip install -e .` failed unconditionally on any modern pip/setuptools due to an invalid `build-backend` in `pyproject.toml` (`setuptools.backends.legacy:build`, which does not exist). Corrected to `setuptools.build_meta`.
+- Fixed `pyproject.toml` package version (`1.0.0`) being out of sync with the actual release (`1.1.0`).
+
+### Known Limitations
+
+- The Twiss Inspector's "open in new tab" popup always loads Plotly.js from a CDN and needs internet, even when the main output was rendered with the offline/self-contained option. See [Known Issues](reference/known-issues.md).
+
+### Internal
+
+- Added a pytest test suite (`tests/`) covering mesh/geometry math, element classification, aperture-file parsing, mesh assembly, plot helper functions, backend file parsers, and end-to-end MAD-X pipeline smoke tests (including the CDN-vs-embedded-Plotly.js behavior).
+- Added GitHub Actions CI running the test suite across Python 3.9–3.12, plus a separate `ruff` lint job.
+- Removed dead, duplicated mesh-geometry code and unused imports flagged by `ruff`.
+
+---
+
 ## v1.1.0 — 2026-05-18
 
 ### New Features

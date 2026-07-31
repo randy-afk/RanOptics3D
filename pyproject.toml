@@ -1,10 +1,10 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ranoptics3d"
-version = "1.0.0"
+version = "1.2.0"
 description = "3D accelerator lattice layout viewer (Tao/ELEGANT/xsuite/MAD-X → interactive HTML)"
 authors = [
   { name = "Randika Gamage", email = "randika@jlab.org" }
@@ -41,6 +41,7 @@ gui    = ["PySide6>=6.4"]
 tao    = ["pytao>=0.3"]
 xsuite = ["xsuite>=0.13"]
 all    = ["PySide6>=6.4", "pytao>=0.3", "xsuite>=0.13"]
+dev    = ["pytest>=7", "ruff>=0.4"]
 
 [project.scripts]
 ranoptics3d = "ranoptics3d.cli:main"
@@ -59,3 +60,17 @@ ranoptics3d = [
   "_panel/control.js",
   "_panel/panel_template.html",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+# E (pycodestyle) is deliberately excluded: this codebase uses a dense,
+# semicolon-joined statement style throughout (e.g. "x = 1; y = 2") that
+# would generate hundreds of stylistic findings unrelated to correctness.
+# F (pyflakes) is what actually catches missing-import / undefined-name /
+# unused-import bugs, which is the class of bug this lint pass targets.
+select = ["F", "W"]

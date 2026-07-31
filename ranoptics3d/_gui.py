@@ -11,12 +11,12 @@ try:
     from PySide6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
         QLineEdit, QCheckBox, QComboBox, QTabWidget, QScrollArea,
-        QTextEdit, QProgressBar, QMenuBar, QMenu, QFileDialog, QMessageBox,
-        QInputDialog, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy,
+        QTextEdit, QFileDialog, QMessageBox,
+        QInputDialog, QHBoxLayout, QVBoxLayout,
     )
     from PySide6.QtCore import Qt, Signal
     from PySide6.QtGui import (
-        QFont, QColor, QPalette, QAction, QPainter, QPen, QTextCharFormat,
+        QFont, QColor, QAction, QPainter, QPen, QTextCharFormat,
     )
     _HAVE_PYSIDE = True
 except ImportError:
@@ -31,22 +31,6 @@ from ._plot import _parse_camera_eye
 # ════════════════════════════════════════════════════════════════════════════
 #  SECTION 4 — PySide6 GUI
 # ════════════════════════════════════════════════════════════════════════════
-
-
-try:
-    from PySide6.QtWidgets import (
-        QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
-        QLineEdit, QCheckBox, QComboBox, QTabWidget, QScrollArea,
-        QTextEdit, QProgressBar, QMenuBar, QMenu, QFileDialog, QMessageBox,
-        QInputDialog, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy,
-    )
-    from PySide6.QtCore import Qt, Signal
-    from PySide6.QtGui import (
-        QFont, QColor, QPalette, QAction, QPainter, QPen, QTextCharFormat,
-    )
-    _HAVE_PYSIDE = True
-except ImportError:
-    _HAVE_PYSIDE = False
 
 
 # ── RanOptics palette (matches ranoptics.py exactly) ──────────────────────────
@@ -428,7 +412,7 @@ if _HAVE_PYSIDE:
             name_lbl.setFont(self.FONT_HDR)
             name_lbl.setStyleSheet("background: transparent;")
             tv.addWidget(name_lbl)
-            sub = QLabel("3D Lattice Layout Viewer  •  v1.1.0")
+            sub = QLabel("3D Lattice Layout Viewer  •  v1.2.0")
             sub.setFont(self.FONT_SMALL)
             sub.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
             tv.addWidget(sub)
@@ -753,6 +737,16 @@ if _HAVE_PYSIDE:
                   "Adds an in-browser panel for type visibility, click-to-"
                   "focus, aspect sliders, live annotations, and pinned info — "
                   "no re-render needed for these.", self.FONT_SMALL)
+
+            r = _row(layout)
+            self.w_offline_html = _chk(r, "Fully self-contained HTML (works offline)",
+                                        self.FONT_MAIN, self.SS['chk'])
+            self.w_offline_html.setChecked(False)
+            _help(layout,
+                  "Off (default): output HTML loads Plotly.js from a CDN — "
+                  "small file, but needs internet the first time it's opened. "
+                  "On: embeds Plotly.js directly (~4 MB larger) so the file "
+                  "works with no internet connection at all.", self.FONT_SMALL)
 
             _sec(layout, "Beampipe", self.FONT_SEC)
             r = _row(layout)
@@ -1159,6 +1153,7 @@ if _HAVE_PYSIDE:
                 focus_element=self.w_focus_elem.text().strip() or None,
                 focus_radius=_f(self.w_focus_radius, None),
                 add_control_panel=self.w_control_panel.isChecked(),
+                embed_plotlyjs=self.w_offline_html.isChecked(),
                 show_twiss=self.w_show_twiss.isChecked(),
                 aperture_file=self.w_aperture_file.text().strip() or None,
                 emit_x=_f(self.w_emit_x, None),
@@ -1377,6 +1372,7 @@ if _HAVE_PYSIDE:
                 'dark':         self.w_dark.isChecked(),
                 'show_gizmo':   self.w_show_gizmo.isChecked(),
                 'control_panel': self.w_control_panel.isChecked(),
+                'offline_html': self.w_offline_html.isChecked(),
                 'show_pipe':    self.w_show_pipe.isChecked(),
                 'pipe_color':   self.w_pipe_color.text(),
                 'pipe_width':   self.w_pipe_width.text(),
@@ -1423,6 +1419,7 @@ if _HAVE_PYSIDE:
             _sc(self.w_z_up, 'z_up'); _sc(self.w_dark, 'dark')
             _sc(self.w_show_gizmo, 'show_gizmo')
             _sc(self.w_control_panel, 'control_panel')
+            _sc(self.w_offline_html, 'offline_html')
             _sc(self.w_show_pipe, 'show_pipe')
             _st(self.w_pipe_color, 'pipe_color')
             _st(self.w_pipe_width, 'pipe_width')

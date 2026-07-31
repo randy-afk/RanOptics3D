@@ -4,7 +4,6 @@ ranoptics3d._backends.madx
 MAD-X backend — reads twiss TFS + optional survey TFS.
 """
 from __future__ import annotations
-from pathlib import Path
 import numpy as np
 
 def _read_tfs(filepath):

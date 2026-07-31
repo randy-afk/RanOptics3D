@@ -1,6 +1,6 @@
 # RanOptics3D
 
-An interactive 3D accelerator lattice viewer for accelerator physicists. Reads lattice and optics data from simulation codes and produces a self-contained interactive HTML visualization with an in-browser control panel.
+An interactive 3D accelerator lattice viewer for accelerator physicists. Reads lattice and optics data from simulation codes and produces an interactive HTML visualization with an in-browser control panel.
 
 ---
 
@@ -18,6 +18,7 @@ An interactive 3D accelerator lattice viewer for accelerator physicists. Reads l
 - **Camera presets** — Iso, Top, Side, Front views
 - **PNG screenshot** — export the current view
 - **Grid toggle** — show/hide axis grid from the HTML panel
+- **Offline HTML option** — embed Plotly.js for a fully self-contained file, or load it from a CDN for a much smaller output
 
 ---
 
@@ -60,7 +61,14 @@ python RanOptics3D.py
 3. Set output directory
 4. Click **▶ Render 3D**
 
-The output is a self-contained HTML file that opens in any browser.
+The output is a single HTML file that opens in any browser. By default it
+loads Plotly.js from a CDN — a small file, but it needs an internet
+connection the first time it's opened. Check **Fully self-contained HTML**
+(GUI) or pass `--offline` (CLI) to embed Plotly.js directly instead: the
+file works with no internet connection at all, at the cost of ~4 MB extra
+size. Either way, the Twiss Inspector's "open in new tab" popup always
+needs internet, regardless of this setting (see
+[Known Issues](docs/reference/known-issues.md)).
 
 ### Input Files by Backend
 
@@ -148,6 +156,7 @@ QF          block      8.0
 
 - Short solenoids (< ~0.5m) render as a donut shape due to less than one full turn.
 - Twiss inspector shows incorrect data for some specific ELEGANT lattices (under investigation).
+- The Twiss Inspector's "open in new tab" popup always loads Plotly.js from a CDN and needs internet, even when the main output was rendered with the offline/self-contained option.
 
 ---
 

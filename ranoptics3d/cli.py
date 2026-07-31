@@ -28,6 +28,11 @@ def main():
     parser.add_argument('--s-start',      type=float, default=None)
     parser.add_argument('--s-end',        type=float, default=None)
     parser.add_argument('--gui', action='store_true')
+    parser.add_argument('--offline', action='store_true', default=False,
+                        help='Embed Plotly.js in the output HTML (~4 MB '
+                             'larger) so it works fully offline. Default '
+                             'loads Plotly.js from a CDN — smaller file, '
+                             'needs internet on first view.')
     args = parser.parse_args()
 
     if args.gui or args.lattice is None:
@@ -65,6 +70,7 @@ def main():
             element_half_width=args.half_width,
             element_half_height=args.half_height,
             bend_segments=args.bend_segments, srange=srange,
+            embed_plotlyjs=args.offline,
             show=True, log_fn=lambda m: print(m, end=''),
         )
 

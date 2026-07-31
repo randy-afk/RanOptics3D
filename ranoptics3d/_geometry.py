@@ -77,34 +77,6 @@ def _box_mesh(x0, y0, z0, theta, phi, length, half_w, half_h):
     return xs, ys, zs, i, j, k
 
 
-def _cross_mesh(x0, y0, z0, theta, phi, length, half_w, half_h, arm_frac=0.4):
-    """Plus/cross shaped mesh for quadrupoles.
-
-    Two overlapping boxes along the beam axis:
-      - horizontal bar: full width (half_w), reduced height (half_h * arm_frac)
-      - vertical bar:   reduced width (half_w * arm_frac), full height (half_h)
-
-    arm_frac controls the thickness of each arm (0.4 = 40% of half dimension).
-    """
-    hw_thin = half_w * arm_frac
-    hh_thin = half_h * arm_frac
-
-    xs1, ys1, zs1, i1, j1, k1 = _box_mesh(
-        x0, y0, z0, theta, phi, length, half_w, hh_thin)   # horizontal bar
-    xs2, ys2, zs2, i2, j2, k2 = _box_mesh(
-        x0, y0, z0, theta, phi, length, hw_thin, half_h)   # vertical bar
-
-    offset = len(xs1)
-    xs = xs1 + xs2
-    ys = ys1 + ys2
-    zs = zs1 + zs2
-    ii = i1 + [v + offset for v in i2]
-    jj = j1 + [v + offset for v in j2]
-    kk = k1 + [v + offset for v in k2]
-    return xs, ys, zs, ii, jj, kk
-
-
-
 def _bend_box_mesh(x0, y0, z0, theta0, phi0, length, angle,
                    half_w, half_h, n_seg=12, vertical=False):
     """Segmented box mesh for a bending dipole.

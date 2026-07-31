@@ -11,13 +11,11 @@ from pathlib import Path
 import numpy as np
 import plotly.graph_objects as go
 
-from ._elements  import element_color, element_legend, make_hover, _MARKER_MONITOR_KEYS
-from ._geometry  import _rot_matrix
-from ._mesh      import (_build_beampipe_trace, _build_beampipe_tube,
-                         _build_twiss_tube,
+from ._elements  import _MARKER_MONITOR_KEYS
+from ._mesh      import (_build_beampipe_trace, _build_twiss_tube,
                          _build_crosshair_lines, _build_element_meshes,
-                         _build_aperture_meshes)
-from ._aperture  import parse_aperture_file, match_apertures
+                         _read_tunnel_wall)
+from ._aperture  import parse_aperture_file
 from ._backends  import load_tao, load_elegant, load_xsuite, load_madx
 from ._panel.builder import build_control_panel
 
@@ -136,7 +134,6 @@ def _filter_by_range(elements, srange):
 def _build_annotations(elements, pattern):
     """Return a list of (x, y, z, text) for elements matching the pattern.
     Pattern is a comma-separated wildcard string (e.g. 'IPM*, BPM*')."""
-    import fnmatch
     if not pattern or not pattern.strip():
         return []
     patterns = [p.strip() for p in pattern.split(',') if p.strip()]
@@ -200,6 +197,9 @@ def plot_optics_3d(
     focus_element=None,        # element name to center rotation pivot on
     focus_radius=None,         # if set, also crops view to a window of this radius
     add_control_panel=True,    # inject in-browser interactive control panel
+    embed_plotlyjs=False,      # True: embed Plotly.js (~4 MB larger, fully
+                               # offline); False: load Plotly.js from a CDN
+                               # (smaller file, needs internet on first view)
     emit_x=None,               # geometric horizontal emittance (m·rad)
     emit_y=None,               # geometric vertical emittance (m·rad)
     sigma_dp=None,             # momentum spread δp/p (not yet used in tube)
@@ -271,10 +271,14 @@ def plot_optics_3d(
                           focus, camera presets, aspect sliders, live
                           annotation pattern, pinned info readout. The panel
                           is pure HTML+JS, no server required.
+    embed_plotlyjs      : if False (default), the output HTML loads Plotly.js
+                          from a CDN — small file, but needs an internet
+                          connection the first time it's opened in a browser.
+                          If True, Plotly.js (~4 MB) is embedded directly in
+                          the file, so it works fully offline at the cost of
+                          a much larger output file.
     log_fn              : optional logging function
     """
-    import plotly.graph_objects as go
-
     if inspector_plots is None:
         inspector_plots = ['beta', 'sigma']
 
@@ -845,7 +849,8 @@ def plot_optics_3d(
         # corrupt the embedded JSON's curly braces.
         import io
         buf = io.StringIO()
-        fig.write_html(buf, full_html=True, include_plotlyjs='cdn')
+        fig.write_html(buf, full_html=True,
+                       include_plotlyjs=(True if embed_plotlyjs else 'cdn'))
         html_text = buf.getvalue()
         injection = (panel_html
                      + '\n<script type="text/javascript">\n'
@@ -858,7 +863,8 @@ def plot_optics_3d(
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html_text)
     else:
-        fig.write_html(output_file)
+        fig.write_html(output_file,
+                       include_plotlyjs=(True if embed_plotlyjs else 'cdn'))
     L(f"✓ Saved 3D HTML → {output_file}")
     if show:
         import webbrowser

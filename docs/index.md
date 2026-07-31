@@ -1,7 +1,7 @@
 # RanOptics3D
 
 An interactive 3D accelerator lattice viewer for accelerator physicists. Reads lattice and
-optics data from simulation codes and produces a self-contained interactive HTML visualization
+optics data from simulation codes and produces an interactive HTML visualization
 with an in-browser control panel.
 
 ---
@@ -20,6 +20,7 @@ with an in-browser control panel.
 - **Camera presets** — Iso, Top, Side, Front views
 - **PNG screenshot** — export the current view
 - **Grid toggle** — show/hide axis grid from the HTML panel
+- **Offline HTML option** — embed Plotly.js for a fully self-contained file, or load it from a CDN for a much smaller output
 
 ---
 

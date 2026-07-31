@@ -6,7 +6,6 @@ Tao / Bmad backend — loads lattice via pytao.
 from __future__ import annotations
 import re
 from pathlib import Path
-import numpy as np
 
 def _parse_tao_init(init_file):
     """Read n_universes and design_lattice file labels from a Tao .init file."""

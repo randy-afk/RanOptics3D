@@ -38,8 +38,11 @@ python RanOptics3D.py
 4. Set your output directory.
 5. Click **▶ Render 3D**.
 
-The output is a self-contained HTML file — open it in any modern browser.
-No internet connection or server required.
+The output is a single HTML file — open it in any modern browser. By
+default it loads Plotly.js from a CDN (small file, needs internet on
+first view); check **Fully self-contained HTML** in the GUI or pass
+`--offline` on the CLI to embed Plotly.js instead, for a larger file that
+works with no internet connection at all. No server is required either way.
 
 ---
 

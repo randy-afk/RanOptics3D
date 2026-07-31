@@ -5,6 +5,7 @@ ranoptics3d._mesh
 crosshair lines, and aggregated element Mesh3d groups.
 """
 from __future__ import annotations
+import re
 import numpy as np
 from ._elements import (element_color, element_legend, make_hover,
                         FULL_WIDTH_TYPES, THIN_ELEMENT_THRESHOLD,
@@ -14,61 +15,6 @@ from ._geometry import (_rot_matrix, _box_mesh, _bend_box_mesh,
                         _helix_mesh,
                         _aperture_cylinder_mesh, _aperture_block_mesh,
                         _ellipse_edges)
-
-def _build_beampipe_tube(elements, radius=0.03, n_sides=12, color='#888888'):
-    """Build a cylindrical tube mesh following the beampipe survey path.
-
-    Connects element entry/exit points with a tube of given radius.
-    Returns a dict with Mesh3d data, or None if no floor coords found.
-    """
-    # Collect path segments from floor coordinates
-    path = []
-    for e in elements:
-        if 'flr_x0' not in e:
-            continue
-        path.append((
-            np.array([e['flr_x0'], e['flr_y0'], e['flr_z0']]),
-            np.array([e['flr_x1'], e['flr_y1'], e['flr_z1']]),
-            e.get('flr_theta0', 0.0),
-            e.get('flr_phi0',   0.0),
-        ))
-
-    if not path:
-        return None
-
-    # Build tube cross-sections at each unique point along the path
-    angles = np.linspace(0, 2 * np.pi, n_sides, endpoint=False)
-    all_vx, all_vy, all_vz = [], [], []
-    rings = []  # list of (start_idx, n_verts) per ring
-
-    def _add_ring(pt, theta, phi):
-        right, up, _ = _rot_matrix(theta, phi)
-        start = len(all_vx)
-        for a in angles:
-            p = pt + radius * (np.cos(a) * np.array(right) +
-                               np.sin(a) * np.array(up))
-            all_vx.append(float(p[0]))
-            all_vy.append(float(p[1]))
-            all_vz.append(float(p[2]))
-        rings.append(start)
-
-    # First ring at entry of first segment
-    _add_ring(path[0][0], path[0][2], path[0][3])
-    for p0, p1, th, ph in path:
-        _add_ring(p1, th, ph)
-
-    # Faces between consecutive rings
-    ii, jj, kk = [], [], []
-    for ri in range(len(rings) - 1):
-        ra = rings[ri]
-        rb = rings[ri + 1]
-        for si in range(n_sides):
-            sn = (si + 1) % n_sides
-            a, b, c, d = ra+si, ra+sn, rb+si, rb+sn
-            ii += [a, a]; jj += [b, d]; kk += [c, d]
-
-    return dict(x=all_vx, y=all_vy, z=all_vz, i=ii, j=jj, k=kk, color=color)
-
 
 def _build_beampipe_trace(elements, color='#888888', width=2):
     """Beampipe centerline: connect element entry/exit points."""
@@ -372,8 +318,6 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                 # Box edge outlines
                 ex, ey, ez = _box_edges(x0, y0, z0, theta, phi, L_, hw, hh)
                 ol['xs'].extend(ex); ol['ys'].extend(ey); ol['zs'].extend(ez)
-
-        n_vert = len(xs)
 
         n_vert = len(xs)
         offset = len(g['xs'])
