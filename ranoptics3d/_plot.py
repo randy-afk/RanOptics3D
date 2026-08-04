@@ -168,6 +168,9 @@ def plot_optics_3d(
     element_half_height=0.2,
     show_beampipe=True,
     show_outlines=True,        # show white edge outlines on elements
+    realistic_magnets=False,   # render quad/sext/octupole as pole shapes
+                               # and dipoles as a yoke-with-gap shape,
+                               # instead of plain boxes (opt-in)
     aperture_file=None,        # path to magnet size definition file
     beampipe_color='#888888',
     beampipe_width=2,
@@ -526,6 +529,7 @@ def plot_optics_3d(
             bend_segments=bend_segments,
             dark_mode=dark_mode,
             show_outlines=show_outlines,
+            realistic_magnets=realistic_magnets,
             log_fn=log_fn,
         )
 
@@ -543,7 +547,7 @@ def plot_optics_3d(
                     opacity = 1.0
                 opacity = max(0.0, min(1.0, opacity))
 
-            fig.add_trace(go.Mesh3d(
+            mesh_kwargs = dict(
                 x=g['xs'], y=g['ys'], z=g['zs'],
                 i=g['i'], j=g['j'], k=g['k'],
                 color=g['color'],
@@ -556,7 +560,12 @@ def plot_optics_3d(
                 lighting=dict(ambient=0.4, diffuse=0.9, specular=0.4,
                               roughness=0.3, fresnel=0.2),
                 lightposition=dict(x=2000, y=3000, z=4000),
-            ))
+            )
+            # Per-face colors (e.g. coil windings vs. yoke body) override
+            # the uniform `color` above when realistic_magnets built them.
+            if g['facecolor']:
+                mesh_kwargs['facecolor'] = g['facecolor']
+            fig.add_trace(go.Mesh3d(**mesh_kwargs))
             type_traces.setdefault(legend_name, []).append(display_name)
             type_colors[legend_name] = g['color']
             all_x.extend(g['xs']); all_y.extend(g['ys']); all_z.extend(g['zs'])

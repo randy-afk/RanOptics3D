@@ -7,7 +7,7 @@ feature never rendered anything.
 """
 from ranoptics3d._mesh import (
     _read_tunnel_wall, _build_beampipe_trace, _build_element_meshes,
-    _build_twiss_tube, _build_crosshair_lines,
+    _build_twiss_tube, _build_crosshair_lines, _COIL_COLOR,
 )
 
 
@@ -108,6 +108,102 @@ def test_build_element_meshes_cylinder_shape_override():
     groups, outlines, markers = _build_element_meshes([elem])
     assert 'Quadrupole' in groups
     assert len(groups['Quadrupole']['xs']) > 0
+
+
+def test_build_element_meshes_realistic_magnets_off_matches_plain_boxes():
+    """realistic_magnets=False (the default) must reproduce the exact
+    original box-rendering vertex counts — the safety fallback the
+    feature was built around."""
+    lattice = _synthetic_lattice()
+    groups, outlines, markers = _build_element_meshes(
+        lattice, show_markers=False, realistic_magnets=False)
+    # Quadrupole/RF Cavity/Solenoid are single elements -> single-shape
+    # vertex counts (8 for a plain box quadrupole).
+    assert len(groups['Quadrupole']['xs']) == 8
+
+
+def _expected_multi_pole_verts(n_poles, n_seg=8, n_sides=16):
+    """Plate (8v box) + bore (_aperture_cylinder_mesh, n_sides=16,
+    caps=True -> 2*n_sides+2 verts) + n_poles curved brackets (n_seg
+    quad-prism segments each, 8v per segment)."""
+    return 8 + (2 * n_sides + 2) + n_poles * n_seg * 8
+
+
+def test_build_element_meshes_realistic_magnets_on_uses_new_shapes():
+    lattice = _synthetic_lattice()
+    groups, outlines, markers = _build_element_meshes(
+        lattice, show_markers=False, realistic_magnets=True)
+    assert len(groups['Quadrupole']['xs']) == _expected_multi_pole_verts(4)
+    # Dipole (angle=0.1, segmented) = bend_segments(12) * yoke(48 verts:
+    # top/bottom/left/right bars + top/bottom coil accents = 6 boxes)
+    assert len(groups['Dipole']['xs']) == 12 * 48
+    for legend_name, g in groups.items():
+        all_idx = g['i'] + g['j'] + g['k']
+        assert max(all_idx) < len(g['xs'])
+        assert len(g['hover']) == len(g['xs'])
+
+
+def test_build_element_meshes_realistic_magnets_sextupole_octupole():
+    lattice = [
+        _elem('SF1', 'sextupole', 0.0, 0.3,
+              flr_x0=0, flr_y0=0, flr_z0=0.0,
+              flr_x1=0, flr_y1=0, flr_z1=0.3,
+              flr_theta0=0.0, flr_phi0=0.0),
+        _elem('OCT1', 'octupole', 0.3, 0.3,
+              flr_x0=0, flr_y0=0, flr_z0=0.3,
+              flr_x1=0, flr_y1=0, flr_z1=0.6,
+              flr_theta0=0.0, flr_phi0=0.0),
+    ]
+    groups, outlines, markers = _build_element_meshes(
+        lattice, realistic_magnets=True)
+    assert len(groups['Sextupole']['xs']) == _expected_multi_pole_verts(6)
+    assert len(groups['Octupole']['xs']) == _expected_multi_pole_verts(8)
+
+
+def test_build_element_meshes_realistic_magnets_facecolor_contrasts_coils():
+    """The coil/pole-piece faces must be colored differently from the
+    body/yoke faces within the same trace — otherwise (as reported) the
+    coil detail is invisible, blending into one solid color."""
+    lattice = _synthetic_lattice()  # includes QF1 (quadrupole), B1 (sbend)
+    groups, outlines, markers = _build_element_meshes(
+        lattice, show_markers=False, realistic_magnets=True)
+
+    quad = groups['Quadrupole']
+    assert len(quad['facecolor']) == len(quad['i'])
+    assert set(quad['facecolor']) == {quad['color'], _COIL_COLOR}
+
+    dipole = groups['Dipole']
+    assert len(dipole['facecolor']) == len(dipole['i'])
+    assert set(dipole['facecolor']) == {dipole['color'], _COIL_COLOR}
+
+
+def test_build_element_meshes_realistic_magnets_off_has_no_facecolor():
+    lattice = _synthetic_lattice()
+    groups, outlines, markers = _build_element_meshes(
+        lattice, show_markers=False, realistic_magnets=False)
+    for legend_name, g in groups.items():
+        assert g['facecolor'] == []
+
+
+def test_build_element_meshes_realistic_magnets_kicker_uses_dipole_shape():
+    """Correctors (kicker/hkicker/vkicker) are physically small dipoles,
+    so realistic mode should give them the dipole yoke shape, not a
+    plain box."""
+    lattice = [
+        _elem('HK1', 'hkicker', 0.0, 0.2,
+              flr_x0=0, flr_y0=0, flr_z0=0.0,
+              flr_x1=0, flr_y1=0, flr_z1=0.2,
+              flr_theta0=0.0, flr_phi0=0.0),
+    ]
+    groups, outlines, markers = _build_element_meshes(
+        lattice, realistic_magnets=True)
+    # Dipole yoke = 6 boxes * 8 verts = 48 (see _dipole_yoke_mesh)
+    assert len(groups['Kicker']['xs']) == 48
+    assert set(groups['Kicker']['facecolor']) == \
+        {groups['Kicker']['color'], _COIL_COLOR}
+
+    groups_off, _, _ = _build_element_meshes(lattice, realistic_magnets=False)
+    assert len(groups_off['Kicker']['xs']) == 8  # plain box, unchanged
 
 
 # ─── _build_beampipe_trace ────────────────────────────────────────────────────

@@ -14,7 +14,16 @@ from ._geometry import (_rot_matrix, _box_mesh, _bend_box_mesh,
                         _ellipsoid_mesh, _box_edges, _octahedron_mesh,
                         _helix_mesh,
                         _aperture_cylinder_mesh, _aperture_block_mesh,
-                        _ellipse_edges)
+                        _ellipse_edges,
+                        _multi_pole_mesh, _multi_pole_edges,
+                        _bend_yoke_mesh, _dipole_yoke_mesh,
+                        _dipole_yoke_edges)
+
+# Fixed coil-winding accent color for realistic magnet shapes — used for
+# every magnet type's 'coil' face tag so coils read as visually distinct
+# from each type's own yoke-body color (matching how a real magnet's
+# copper coils contrast with its steel yoke).
+_COIL_COLOR = '#c9852f'
 
 def _build_beampipe_trace(elements, color='#888888', width=2):
     """Beampipe centerline: connect element entry/exit points."""
@@ -164,8 +173,15 @@ def _build_crosshair_lines(elements, emit_x, emit_y, scale=1.0,
 
 def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                           show_markers=False, bend_segments=12, dark_mode=True,
-                          show_outlines=True, log_fn=None):
+                          show_outlines=True, realistic_magnets=False,
+                          log_fn=None):
     """Group elements by type and build Mesh3d + outline Scatter3d traces.
+
+    realistic_magnets: if True, quadrupoles/sextupoles/octupoles render as
+        multi-pole "clover" shapes and dipoles as a yoke-with-gap shape
+        (see _multi_pole_mesh / _dipole_yoke_mesh / _bend_yoke_mesh in
+        _geometry.py) instead of plain boxes. Default False reproduces
+        the exact original box-rendering code path unchanged.
 
     Returns:
         groups   — dict legend_name -> mesh data (for Mesh3d)
@@ -187,6 +203,13 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                 'xs': [], 'ys': [], 'zs': [],
                 'i': [], 'j': [], 'k': [],
                 'hover': [],
+                # Per-face colors (Plotly Mesh3d `facecolor`), populated
+                # only when realistic_magnets is on — lets body vs. coil
+                # sub-parts of a shape be colored differently within one
+                # trace. Left empty (falls back to plain `color`) when
+                # realistic_magnets is off, or for shapes with no
+                # body/coil distinction (RF cavity, solenoid, etc.).
+                'facecolor': [],
             }
             outlines[legend_name] = {
                 'color': color,
@@ -251,6 +274,7 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
 
         hover = make_hover(elem)
         g, ol = _ensure_group(legend, color)
+        face_tags = None  # set by shapes with a body/coil color split
 
         # Cylinder shape override — replaces geometry entirely
         if elem.get('_mag_shape') == 'cylinder':
@@ -263,6 +287,8 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
             g['j'].extend([v + offset for v in jj])
             g['k'].extend([v + offset for v in kk])
             g['hover'].extend([hover] * n_vert)
+            if realistic_magnets:
+                g['facecolor'].extend([color] * len(ii))
             ex, ey, ez = _ellipse_edges(x0, y0, z0, theta, phi, L_, hw, hh)
             ol['xs'].extend(ex); ol['ys'].extend(ey); ol['zs'].extend(ez)
             continue
@@ -284,10 +310,22 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
             # ELEGANT: positive angle bends toward -x for horizontal dipoles.
             # Negate horizontal only so mesh matches floor plan direction.
             mesh_ang = ang if is_vbend else -ang
+            # Correctors (kicker/hkicker/vkicker) are physically small
+            # dipoles, so realistic mode gives them the same yoke shape.
+            is_dipole_like = 'sbend' in kc or 'rbend' in kc or 'kicker' in kc
             if 'sbend' in kc and abs(ang) > 1e-6:
-                xs, ys, zs, ii, jj, kk = _bend_box_mesh(
-                    x0, y0, z0, theta, phi, L_, mesh_ang, hw, hh,
-                    n_seg=bend_segments, vertical=is_vbend)
+                # realistic_magnets=False reproduces the original box path
+                # exactly; True swaps in the segmented yoke shape instead.
+                if realistic_magnets:
+                    xs, ys, zs, ii, jj, kk, face_tags = _bend_yoke_mesh(
+                        x0, y0, z0, theta, phi, L_, mesh_ang, hw, hh,
+                        n_seg=bend_segments, vertical=is_vbend)
+                    edge_fn = _dipole_yoke_edges
+                else:
+                    xs, ys, zs, ii, jj, kk = _bend_box_mesh(
+                        x0, y0, z0, theta, phi, L_, mesh_ang, hw, hh,
+                        n_seg=bend_segments, vertical=is_vbend)
+                    edge_fn = _box_edges
                 # Per-segment edges following the curved mesh
                 seg_len = L_ / bend_segments
                 seg_ang = mesh_ang / bend_segments
@@ -300,7 +338,7 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                     else:
                         mid_theta = cur_theta + seg_ang / 2.0
                         mid_phi   = cur_phi
-                    ex, ey, ez = _box_edges(
+                    ex, ey, ez = edge_fn(
                         cur_x, cur_y, cur_z, mid_theta, mid_phi,
                         seg_len, hw, hh)
                     ol['xs'].extend(ex); ol['ys'].extend(ey); ol['zs'].extend(ez)
@@ -313,10 +351,42 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
                     else:
                         cur_theta += seg_ang
             else:
-                xs, ys, zs, ii, jj, kk = _box_mesh(
-                    x0, y0, z0, theta, phi, L_, hw, hh)
-                # Box edge outlines
-                ex, ey, ez = _box_edges(x0, y0, z0, theta, phi, L_, hw, hh)
+                # Straight elements: quad/sext/octupole get pole shapes,
+                # straight (near-zero-angle) dipoles/correctors get a yoke
+                # shape, and everything else stays a plain box — all only
+                # when realistic_magnets is on. Default off reproduces the
+                # original plain-box path exactly.
+                n_poles = None
+                start_angle = 0.0
+                is_straight_dipole = realistic_magnets and is_dipole_like
+                if realistic_magnets and not is_straight_dipole:
+                    if 'quadrupole' in kc:
+                        n_poles = 4
+                        # Normal quads have poles on the diagonals, not
+                        # axis-aligned with the horizontal/vertical planes.
+                        start_angle = np.pi / 4
+                    elif 'sextupole' in kc:
+                        n_poles = 6
+                    elif 'octupole' in kc:
+                        n_poles = 8
+
+                if is_straight_dipole:
+                    xs, ys, zs, ii, jj, kk, face_tags = _dipole_yoke_mesh(
+                        x0, y0, z0, theta, phi, L_, hw, hh)
+                    ex, ey, ez = _dipole_yoke_edges(
+                        x0, y0, z0, theta, phi, L_, hw, hh)
+                elif n_poles is not None:
+                    xs, ys, zs, ii, jj, kk, face_tags = _multi_pole_mesh(
+                        x0, y0, z0, theta, phi, L_, hw, hh,
+                        n_poles=n_poles, start_angle=start_angle)
+                    ex, ey, ez = _multi_pole_edges(
+                        x0, y0, z0, theta, phi, L_, hw, hh,
+                        n_poles=n_poles, start_angle=start_angle)
+                else:
+                    xs, ys, zs, ii, jj, kk = _box_mesh(
+                        x0, y0, z0, theta, phi, L_, hw, hh)
+                    # Box edge outlines
+                    ex, ey, ez = _box_edges(x0, y0, z0, theta, phi, L_, hw, hh)
                 ol['xs'].extend(ex); ol['ys'].extend(ey); ol['zs'].extend(ez)
 
         n_vert = len(xs)
@@ -326,6 +396,12 @@ def _build_element_meshes(elements, half_w_default=0.2, half_h_default=0.2,
         g['j'].extend([v + offset for v in jj])
         g['k'].extend([v + offset for v in kk])
         g['hover'].extend([hover] * n_vert)
+        if realistic_magnets:
+            if face_tags is not None:
+                g['facecolor'].extend(
+                    color if t == 'body' else _COIL_COLOR for t in face_tags)
+            else:
+                g['facecolor'].extend([color] * len(ii))
 
     # Set adaptive outline color based on dark/light mode
     ol_color = _outline_color(dark_mode)

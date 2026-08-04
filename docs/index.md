@@ -21,6 +21,8 @@ with an in-browser control panel.
 - **PNG screenshot** — export the current view
 - **Grid toggle** — show/hide axis grid from the HTML panel
 - **Offline HTML option** — embed Plotly.js for a fully self-contained file, or load it from a CDN for a much smaller output
+- **Realistic magnet shapes** (opt-in) — quadrupoles/sextupoles/octupoles render as a yoke plate + beam bore + curved pole-piece coils; dipoles and correctors render as a yoke frame with a visible beam gap and coil accents, instead of plain boxes
+- **Light/Dark GUI theme** — toggle the application's own color theme from the header, kept in sync with RanOptics's palette; independent of the rendered HTML's own dark-mode setting
 
 ---
 
@@ -35,6 +37,10 @@ with an in-browser control panel.
 | 🩵 Cyan | RF Cavities |
 | 🩷 Pink | Solenoids |
 | ⚫ Grey | Markers / Monitors |
+
+With **Realistic magnet shapes** enabled, coil windings render in a
+shared copper accent color to contrast against each type's yoke body
+color above — see [Element Colors](reference/element-colors.md).
 
 ---
 

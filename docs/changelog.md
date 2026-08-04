@@ -2,6 +2,45 @@
 
 ---
 
+## v1.4.0 — 2026-07-31
+
+### New Features
+
+- **Light/Dark GUI theme** — the application's own chrome now has a full light theme to go with dark, plus a "☀ Light / 🌙 Dark" toggle in the header (kept in sync with RanOptics's palette, including its newer semantic colors). Independent of the existing "Dark mode" checkbox in the 3D View tab, which still only controls the rendered HTML output's background. Toggling preserves all current form values, the output log, and the last-render/open-button state.
+
+### Fixed
+
+- The "Range & Universes" and "Beam & Inspector" tab labels rendered as "Range_Universes" / "Beam_Inspector" — Qt was treating the unescaped `&` as a mnemonic accelerator. Escaped as `&&`.
+
+### Documentation
+
+- [GUI Walkthrough](guide/gui-walkthrough.md) was missing several real controls: the xsuite/MAD-X-specific Input tab fields, editable universe labels, the Phase units dropdown and σ-tube overlay fields on Beam & Inspector, the "Fully self-contained HTML" checkbox, and the entire File/Presets/Run menu bar.
+
+### Internal
+
+- `_theme.py` now mirrors RanOptics's dynamic theme-switching pattern instead of a static one-time palette.
+- Fixed a few spots that were reusing `CRUST` (menubar/statusbar background) for "text on an accent-colored background," now using the semantically-correct `AINK`.
+- `cli.py`'s palette setup now shares code with the new toggle instead of duplicating it.
+
+---
+
+## v1.3.0 — 2026-07-31
+
+### New Features
+
+- **Realistic magnet shapes** (opt-in) — new `realistic_magnets` parameter (GUI: "Realistic magnet shapes" checkbox in the Elements tab; CLI: `--realistic-magnets`). Quadrupoles/sextupoles/octupoles render as a flat yoke plate + central beam bore + curved pole-piece "coil" brackets, modeled after the classic multipole-magnet illustration, instead of plain boxes. Dipoles render as a closed yoke frame with a visible beam-channel gap and coil accents. Correctors (kicker/hkicker/vkicker) — physically small dipoles — get the same dipole yoke shape. Coil-winding faces render in a shared copper accent color (`#c9852f`), contrasting against each type's own yoke-body color. Off by default; the fallback box rendering is unchanged.
+
+### Fixed
+
+- `_aperture_cylinder_mesh`'s entry/exit cap fan triangles had inverted winding — normals pointed into the tube instead of away from it. Affects the `_mag_shape='cylinder'` magnet-size-file override and the new magnet-shape bore geometry.
+
+### Internal
+
+- New geometry primitives: a generalized box-to-any-convex-quadrilateral prism, curved pole-piece brackets (chained straight segments, same technique as bent dipoles), and per-face body/coil color tagging for multi-color composite shapes.
+- ~15 new tests covering geometry integrity (index-bounds, non-degenerate-triangle, outward-normal checks) and the new per-face coloring / corrector-as-dipole behavior.
+
+---
+
 ## v1.2.0 — 2026-07-31
 
 ### New Features

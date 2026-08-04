@@ -19,6 +19,8 @@ An interactive 3D accelerator lattice viewer for accelerator physicists. Reads l
 - **PNG screenshot** — export the current view
 - **Grid toggle** — show/hide axis grid from the HTML panel
 - **Offline HTML option** — embed Plotly.js for a fully self-contained file, or load it from a CDN for a much smaller output
+- **Realistic magnet shapes** (opt-in) — quadrupoles/sextupoles/octupoles render as a yoke plate + beam bore + curved pole-piece coils; dipoles and correctors render as a yoke frame with a visible beam gap and coil accents, instead of plain boxes
+- **Light/Dark GUI theme** — toggle the application's own color theme from the header, kept in sync with RanOptics's palette; independent of the rendered HTML's own dark-mode setting
 
 ---
 
@@ -149,6 +151,10 @@ QF          block      8.0
 | Cyan | RF Cavities |
 | Pink | Solenoids |
 | Grey | Markers / Monitors |
+
+With **Realistic magnet shapes** enabled, each type's coil windings are
+rendered in a shared copper accent color (`#c9852f`) to contrast against
+the yoke body's type color above.
 
 ---
 

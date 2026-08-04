@@ -18,7 +18,7 @@ Quick start
     ranoptics3d --gui
 """
 
-__version__ = '1.2.0'
+__version__ = '1.4.0'
 __author__  = 'Randika Gamage (randika@jlab.org)'
 __support__ = r'¯\_(ツ)_/¯  (good luck, I believe in you)'
 __license__ = 'MIT'

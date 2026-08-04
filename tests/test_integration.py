@@ -84,6 +84,34 @@ def test_plot_optics_3d_end_to_end_madx(tmp_path):
     assert out_html.stat().st_size > 1000  # non-trivially sized HTML output
 
 
+def test_plot_optics_3d_realistic_magnets_end_to_end(tmp_path):
+    """realistic_magnets=True must render successfully through the full
+    pipeline (not just at the _build_element_meshes unit level) and the
+    resulting mesh traces must still have valid, in-bounds face indices."""
+    twiss_path, survey_path, _ = _write_fixtures(tmp_path)
+    out_html = tmp_path / "realistic.html"
+
+    fig = plot_optics_3d(
+        str(twiss_path), code='madx', madx_survey=str(survey_path),
+        output_file=str(out_html), show=False, add_control_panel=False,
+        realistic_magnets=True,
+    )
+
+    trace_names = {t.name for t in fig.data}
+    assert 'Quadrupole' in trace_names
+    assert 'Dipole' in trace_names
+
+    for trace in fig.data:
+        if trace.type != 'mesh3d':
+            continue
+        n_verts = len(trace.x)
+        all_idx = list(trace.i) + list(trace.j) + list(trace.k)
+        assert max(all_idx) < n_verts, f"{trace.name}: face index out of bounds"
+        assert min(all_idx) >= 0
+
+    assert out_html.exists()
+
+
 def test_plot_optics_3d_without_control_panel_still_returns_figure(tmp_path):
     twiss_path, survey_path, tunnel_path = _write_fixtures(tmp_path)
     out_html = tmp_path / "out.html"

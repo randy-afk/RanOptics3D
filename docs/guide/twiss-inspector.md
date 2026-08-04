@@ -21,7 +21,7 @@ by clicking directly in the 3D view.
 ## Available Optics Panels
 
 Which panels appear is controlled by the toggles in the
-[Beam & Inspector tab](gui-walkthrough.md#beam--inspector-tab) before rendering.
+[Beam & Inspector tab](gui-walkthrough.md#beam-inspector-tab) before rendering.
 
 | Panel | Description |
 |---|---|

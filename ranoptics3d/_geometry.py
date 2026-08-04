@@ -131,6 +131,380 @@ def _bend_box_mesh(x0, y0, z0, theta0, phi0, length, angle,
     return xs, ys, zs, i_idx, j_idx, k_idx
 
 
+def _quad_prism_mesh(x0, y0, z0, theta, phi, length, corners_2d):
+    """Generalized box: same fixed 8-vertex/12-triangle topology as
+    _box_mesh, but the transverse cross-section is an arbitrary convex
+    quadrilateral (corners_2d: 4 (u,v) points in the local right/up
+    plane) instead of a fixed axis-aligned rectangle.
+
+    corners_2d must be given in the same winding order as _box_mesh's
+    implicit corners — counterclockwise, e.g. "bottom-left, bottom-right,
+    top-right, top-left" — so this reuses _box_mesh's exact proven face
+    list unchanged; only the corner positions differ. A rotation of a
+    valid CCW quad is still a valid CCW quad, so this stays just as safe
+    for winding/normals as the plain rectangle case.
+    """
+    right, up, fwd = _rot_matrix(theta, phi)
+    p0 = np.array([x0, y0, z0])
+    p1 = p0 + fwd * length
+    corners = []
+    for base in (p0, p1):
+        for u, v in corners_2d:
+            corners.append(base + right * u + up * v)
+    corners = np.array(corners)  # shape (8, 3)
+    faces = [
+        (0, 2, 1), (0, 3, 2),
+        (4, 5, 6), (4, 6, 7),
+        (1, 2, 6), (1, 6, 5),
+        (0, 4, 7), (0, 7, 3),
+        (3, 7, 6), (3, 6, 2),
+        (0, 1, 5), (0, 5, 4),
+    ]
+    xs = corners[:, 0].tolist()
+    ys = corners[:, 1].tolist()
+    zs = corners[:, 2].tolist()
+    i = [f[0] for f in faces]
+    j = [f[1] for f in faces]
+    k = [f[2] for f in faces]
+    return xs, ys, zs, i, j, k
+
+
+def _quad_prism_edges(x0, y0, z0, theta, phi, length, corners_2d):
+    """Outline edges matching _quad_prism_mesh (12 edges of the prism)."""
+    right, up, fwd = _rot_matrix(theta, phi)
+    p0 = np.array([x0, y0, z0])
+    p1 = p0 + fwd * length
+    corners = []
+    for base in (p0, p1):
+        for u, v in corners_2d:
+            corners.append(base + right * u + up * v)
+    edges = [
+        (0, 1), (1, 2), (2, 3), (3, 0),
+        (4, 5), (5, 6), (6, 7), (7, 4),
+        (0, 4), (1, 5), (2, 6), (3, 7),
+    ]
+    xs, ys, zs = [], [], []
+    for a, b in edges:
+        xs += [corners[a][0], corners[b][0], None]
+        ys += [corners[a][1], corners[b][1], None]
+        zs += [corners[a][2], corners[b][2], None]
+    return xs, ys, zs
+
+
+def _curved_bracket_mesh(x0, y0, z0, theta, phi, length, half_w, half_h,
+                         start_angle, end_angle,
+                         inner_radius_frac, outer_radius_frac, n_seg=8):
+    """A curved "C"/bracket-shaped band: swept from start_angle to
+    end_angle (radians) at a radius between inner_radius_frac and
+    outer_radius_frac (fractions of half_w/half_h), extruded the full
+    element length along the beam axis.
+
+    Approximated by n_seg straight _quad_prism_mesh segments — the same
+    "many small straight segments approximate a curve" technique already
+    used for bent dipoles (_bend_box_mesh), just curving in the
+    transverse plane instead of along the beam direction. Each segment's
+    4 corners are in the same CCW winding as a plain box, so this is
+    exactly as safe as every other shape in this module.
+    """
+    angles = np.linspace(start_angle, end_angle, n_seg + 1)
+    meshes = []
+    for k in range(n_seg):
+        a0, a1 = angles[k], angles[k + 1]
+        corners = [
+            (half_w * inner_radius_frac * np.cos(a0), half_h * inner_radius_frac * np.sin(a0)),
+            (half_w * outer_radius_frac * np.cos(a0), half_h * outer_radius_frac * np.sin(a0)),
+            (half_w * outer_radius_frac * np.cos(a1), half_h * outer_radius_frac * np.sin(a1)),
+            (half_w * inner_radius_frac * np.cos(a1), half_h * inner_radius_frac * np.sin(a1)),
+        ]
+        meshes.append(_quad_prism_mesh(x0, y0, z0, theta, phi, length, corners))
+    return _concat_meshes(*meshes)
+
+
+def _curved_bracket_edges(x0, y0, z0, theta, phi, length, half_w, half_h,
+                          start_angle, end_angle,
+                          inner_radius_frac, outer_radius_frac, n_seg=8):
+    """Outline edges matching _curved_bracket_mesh."""
+    angles = np.linspace(start_angle, end_angle, n_seg + 1)
+    xs, ys, zs = [], [], []
+    for k in range(n_seg):
+        a0, a1 = angles[k], angles[k + 1]
+        corners = [
+            (half_w * inner_radius_frac * np.cos(a0), half_h * inner_radius_frac * np.sin(a0)),
+            (half_w * outer_radius_frac * np.cos(a0), half_h * outer_radius_frac * np.sin(a0)),
+            (half_w * outer_radius_frac * np.cos(a1), half_h * outer_radius_frac * np.sin(a1)),
+            (half_w * inner_radius_frac * np.cos(a1), half_h * inner_radius_frac * np.sin(a1)),
+        ]
+        ex, ey, ez = _quad_prism_edges(x0, y0, z0, theta, phi, length, corners)
+        xs += ex; ys += ey; zs += ez
+    return xs, ys, zs
+
+
+# ─── Realistic magnet shapes (opt-in) ────────────────────────────────────────
+#
+# Every shape below is composed entirely from repeated calls to the plain
+# _box_mesh()/_quad_prism_mesh() above (via the _offset_box_mesh() wrapper
+# and direct corner math for the tapered pole wedges). No new triangulation
+# logic is introduced anywhere — every sub-shape reuses _box_mesh's proven,
+# fixed 12-triangle topology, just with different (but still convex,
+# consistently-wound) corner positions — so composing several of them
+# cannot introduce inverted-face or self-intersecting geometry.
+
+def _offset_box_mesh(x0, y0, z0, theta, phi, length, half_w, half_h,
+                     offset_u=0.0, offset_v=0.0):
+    """Same box as _box_mesh, but shifted off-axis in the transverse plane.
+
+    The box's on-axis entry point is shifted by offset_u along 'right' and
+    offset_v along 'up' before delegating to _box_mesh unchanged — so the
+    resulting mesh has identical winding/normals to a plain box.
+    """
+    right, up, _ = _rot_matrix(theta, phi)
+    ox = x0 + right[0] * offset_u + up[0] * offset_v
+    oy = y0 + right[1] * offset_u + up[1] * offset_v
+    oz = z0 + right[2] * offset_u + up[2] * offset_v
+    return _box_mesh(ox, oy, oz, theta, phi, length, half_w, half_h)
+
+
+def _concat_meshes(*meshes):
+    """Concatenate several (xs,ys,zs,i,j,k) mesh tuples into one, offsetting
+    face indices so they still point at the right (shared) vertex arrays."""
+    xs, ys, zs = [], [], []
+    i_idx, j_idx, k_idx = [], [], []
+    for m_xs, m_ys, m_zs, m_i, m_j, m_k in meshes:
+        offset = len(xs)
+        xs.extend(m_xs); ys.extend(m_ys); zs.extend(m_zs)
+        i_idx.extend([v + offset for v in m_i])
+        j_idx.extend([v + offset for v in m_j])
+        k_idx.extend([v + offset for v in m_k])
+    return xs, ys, zs, i_idx, j_idx, k_idx
+
+
+def _concat_meshes_tagged(mesh_tag_pairs):
+    """Like _concat_meshes, but each sub-mesh also carries a "part" tag
+    (e.g. 'body' or 'coil'), and this returns a 7th list — one tag per
+    face — so a caller can color structurally different parts of a
+    composite shape differently within a single Mesh3d trace (via
+    Plotly's per-face `facecolor`), instead of every sub-shape sharing
+    one uniform color.
+    """
+    xs, ys, zs = [], [], []
+    i_idx, j_idx, k_idx = [], [], []
+    face_tags = []
+    for (m_xs, m_ys, m_zs, m_i, m_j, m_k), tag in mesh_tag_pairs:
+        offset = len(xs)
+        xs.extend(m_xs); ys.extend(m_ys); zs.extend(m_zs)
+        i_idx.extend([v + offset for v in m_i])
+        j_idx.extend([v + offset for v in m_j])
+        k_idx.extend([v + offset for v in m_k])
+        face_tags.extend([tag] * len(m_i))
+    return xs, ys, zs, i_idx, j_idx, k_idx, face_tags
+
+
+def _multi_pole_mesh(x0, y0, z0, theta, phi, length, half_w, half_h,
+                     n_poles, start_angle=0.0,
+                     plate_frac=0.95, bore_frac=0.18,
+                     inner_radius_frac=0.24, outer_radius_frac=0.62,
+                     arc_span_frac=0.55, n_seg=8):
+    """Multi-pole magnet cross-section modeled after the classic
+    illustration of a multipole magnet: a flat backing yoke plate, a
+    central beam-bore cylinder, and n_poles curved "C"-bracket pole
+    pieces wrapping around the bore — rather than flat wedge poles
+    glued onto a small core.
+
+    n_poles=4 -> quadrupole, 6 -> sextupole, 8 -> octupole.
+    arc_span_frac controls how much of the angular slot between poles
+    each bracket fills (1.0 = brackets nearly touch; smaller leaves a
+    visible gap between poles).
+
+    Returns (xs, ys, zs, i, j, k, face_tags) — face_tags is 'body' for
+    the plate/bore and 'coil' for the pole brackets, one entry per face,
+    so a caller can color the coil windings differently from the yoke
+    body (matching how a real magnet's copper coils visually contrast
+    with its steel yoke) via Plotly's per-face `facecolor`.
+    """
+    pairs = [
+        (_box_mesh(x0, y0, z0, theta, phi, length,
+                  half_w * plate_frac, half_h * plate_frac), 'body'),
+        (_aperture_cylinder_mesh(
+            x0, y0, z0, theta, phi, length,
+            radius=half_w * bore_frac, radius_y=half_h * bore_frac,
+            n_sides=16, caps=True), 'body'),
+    ]
+
+    half_slot = (np.pi / n_poles) * arc_span_frac
+    for p in range(n_poles):
+        center_ang = start_angle + 2 * np.pi * p / n_poles
+        bracket = _curved_bracket_mesh(
+            x0, y0, z0, theta, phi, length, half_w, half_h,
+            center_ang - half_slot, center_ang + half_slot,
+            inner_radius_frac, outer_radius_frac, n_seg=n_seg)
+        pairs.append((bracket, 'coil'))
+
+    return _concat_meshes_tagged(pairs)
+
+
+def _multi_pole_edges(x0, y0, z0, theta, phi, length, half_w, half_h,
+                      n_poles, start_angle=0.0,
+                      plate_frac=0.95, bore_frac=0.18,
+                      inner_radius_frac=0.24, outer_radius_frac=0.62,
+                      arc_span_frac=0.55, n_seg=8):
+    """Outline edges matching _multi_pole_mesh (plate + bore + brackets)."""
+    xs, ys, zs = [], [], []
+
+    ex, ey, ez = _box_edges(x0, y0, z0, theta, phi, length,
+                            half_w * plate_frac, half_h * plate_frac)
+    xs += ex; ys += ey; zs += ez
+
+    ex, ey, ez = _ellipse_edges(x0, y0, z0, theta, phi, length,
+                                half_w * bore_frac, half_h * bore_frac,
+                                n_sides=16)
+    xs += ex; ys += ey; zs += ez
+
+    half_slot = (np.pi / n_poles) * arc_span_frac
+    for p in range(n_poles):
+        center_ang = start_angle + 2 * np.pi * p / n_poles
+        ex, ey, ez = _curved_bracket_edges(
+            x0, y0, z0, theta, phi, length, half_w, half_h,
+            center_ang - half_slot, center_ang + half_slot,
+            inner_radius_frac, outer_radius_frac, n_seg=n_seg)
+        xs += ex; ys += ey; zs += ez
+
+    return xs, ys, zs
+
+
+def _dipole_yoke_mesh(x0, y0, z0, theta, phi, length, half_w, half_h,
+                      gap_frac=0.3, bar_frac=0.22, coil_frac=0.35):
+    """Closed "window-frame" dipole yoke cross-section: top and bottom
+    pole slabs connected by left and right return-yoke bars (the 'body'),
+    plus a thin coil accent strip along the beam-gap-facing edge of each
+    pole (the 'coil') — the same body/coil color contrast idea as
+    _multi_pole_mesh, so a dipole's coils read as visually distinct from
+    its steel yoke instead of blending into one solid block.
+
+    Returns (xs, ys, zs, i, j, k, face_tags), 'body' or 'coil' per face.
+    """
+    gap_hh = half_h * gap_frac
+    pole_hh = (half_h - gap_hh) / 2.0
+    pole_center_v = gap_hh + pole_hh  # == half_h - pole_hh
+
+    bar_hw = half_w * bar_frac
+    bar_center_u = half_w - bar_hw
+
+    top = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                           half_w, pole_hh, offset_v=+pole_center_v)
+    bottom = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                              half_w, pole_hh, offset_v=-pole_center_v)
+    left = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                            bar_hw, half_h, offset_u=-bar_center_u)
+    right = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                             bar_hw, half_h, offset_u=+bar_center_u)
+
+    coil_hh = pole_hh * coil_frac
+    coil_hw = half_w * 0.85
+    top_coil = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                                coil_hw, coil_hh, offset_v=gap_hh + coil_hh)
+    bottom_coil = _offset_box_mesh(x0, y0, z0, theta, phi, length,
+                                   coil_hw, coil_hh, offset_v=-(gap_hh + coil_hh))
+
+    return _concat_meshes_tagged([
+        (top, 'body'), (bottom, 'body'), (left, 'body'), (right, 'body'),
+        (top_coil, 'coil'), (bottom_coil, 'coil'),
+    ])
+
+
+def _dipole_yoke_edges(x0, y0, z0, theta, phi, length, half_w, half_h,
+                       gap_frac=0.3, bar_frac=0.22, coil_frac=0.35):
+    """Outline edges matching _dipole_yoke_mesh (bars + coil strips)."""
+    right_v, up, _ = _rot_matrix(theta, phi)
+    xs, ys, zs = [], [], []
+
+    gap_hh = half_h * gap_frac
+    pole_hh = (half_h - gap_hh) / 2.0
+    pole_center_v = gap_hh + pole_hh
+    bar_hw = half_w * bar_frac
+    bar_center_u = half_w - bar_hw
+    coil_hh = pole_hh * coil_frac
+    coil_hw = half_w * 0.85
+
+    def _at(ou, ov, hw, hh):
+        ox = x0 + right_v[0] * ou + up[0] * ov
+        oy = y0 + right_v[1] * ou + up[1] * ov
+        oz = z0 + right_v[2] * ou + up[2] * ov
+        return _box_edges(ox, oy, oz, theta, phi, length, hw, hh)
+
+    for ov, hw, hh in ((+pole_center_v, half_w, pole_hh),
+                       (-pole_center_v, half_w, pole_hh)):
+        ex, ey, ez = _at(0.0, ov, hw, hh)
+        xs += ex; ys += ey; zs += ez
+    for ou, hw, hh in ((-bar_center_u, bar_hw, half_h),
+                       (+bar_center_u, bar_hw, half_h)):
+        ex, ey, ez = _at(ou, 0.0, hw, hh)
+        xs += ex; ys += ey; zs += ez
+    for ov in (gap_hh + coil_hh, -(gap_hh + coil_hh)):
+        ex, ey, ez = _at(0.0, ov, coil_hw, coil_hh)
+        xs += ex; ys += ey; zs += ez
+
+    return xs, ys, zs
+
+
+def _bend_yoke_mesh(x0, y0, z0, theta0, phi0, length, angle,
+                    half_w, half_h, n_seg=12, vertical=False, gap_frac=0.3):
+    """Segmented dipole-yoke mesh for a bending dipole.
+
+    Mirrors _bend_box_mesh's exact arc-subdivision/stepping logic, but
+    builds a _dipole_yoke_mesh cross-section per segment instead of a
+    plain box. The position/angle advancement code is identical to
+    _bend_box_mesh on purpose — that stepping math is the trickiest part
+    of this file, so it's reused rather than re-derived.
+
+    Returns (xs, ys, zs, i, j, k, face_tags), 'body' or 'coil' per face
+    (see _dipole_yoke_mesh), concatenated across all segments.
+    """
+    if abs(angle) < 1e-9 or n_seg < 1:
+        return _dipole_yoke_mesh(x0, y0, z0, theta0, phi0, length,
+                                 half_w, half_h, gap_frac=gap_frac)
+
+    seg_len = length / n_seg
+    seg_ang = angle / n_seg
+    xs, ys, zs = [], [], []
+    i_idx, j_idx, k_idx = [], [], []
+    face_tags = []
+    cur_x, cur_y, cur_z = x0, y0, z0
+    cur_theta = theta0
+    cur_phi = phi0
+
+    for seg in range(n_seg):
+        if vertical:
+            mid_phi = cur_phi + seg_ang / 2.0
+            mid_theta = cur_theta
+        else:
+            mid_theta = cur_theta + seg_ang / 2.0
+            mid_phi = cur_phi
+        sub_xs, sub_ys, sub_zs, si, sj, sk, sub_tags = _dipole_yoke_mesh(
+            cur_x, cur_y, cur_z, mid_theta, mid_phi, seg_len,
+            half_w, half_h, gap_frac=gap_frac)
+        offset = len(xs)
+        xs.extend(sub_xs); ys.extend(sub_ys); zs.extend(sub_zs)
+        i_idx.extend([v + offset for v in si])
+        j_idx.extend([v + offset for v in sj])
+        k_idx.extend([v + offset for v in sk])
+        face_tags.extend(sub_tags)
+        if vertical:
+            _, _, fwd_end = _rot_matrix(mid_theta, cur_phi + seg_ang)
+            _, _, fwd_mid = _rot_matrix(mid_theta, mid_phi)
+            cur_x += fwd_mid[0] * seg_len
+            cur_y += fwd_mid[1] * seg_len
+            cur_z += fwd_mid[2] * seg_len
+            cur_phi += seg_ang
+        else:
+            _, _, fwd_mid = _rot_matrix(mid_theta, mid_phi)
+            cur_x += fwd_mid[0] * seg_len
+            cur_y += fwd_mid[1] * seg_len
+            cur_z += fwd_mid[2] * seg_len
+            cur_theta += seg_ang
+
+    return xs, ys, zs, i_idx, j_idx, k_idx, face_tags
+
+
 # ─── Ellipsoid (RF cavity) mesh ──────────────────────────────────────────────
 
 def _ellipsoid_mesh(x0, y0, z0, theta, phi, length, half_w, half_h,
@@ -375,20 +749,21 @@ def _aperture_cylinder_mesh(x0, y0, z0, theta, phi, length,
         ii += [a, b]; jj += [b, d]; kk += [c, c]
 
     if caps:
-        # Entry cap — center vertex fans to ring
+        # Entry cap — center vertex fans to ring. Winding gives an
+        # outward normal pointing back along -fwd (away from the tube).
         ec = len(vx)
         p = origin
         vx.append(float(p[0])); vy.append(float(p[1])); vz.append(float(p[2]))
         for si in range(n_sides):
             sn = (si + 1) % n_sides
-            ii.append(ec); jj.append(si); kk.append(sn)
-        # Exit cap
+            ii.append(ec); jj.append(sn); kk.append(si)
+        # Exit cap — outward normal points forward along +fwd.
         xc = len(vx)
         p = end
         vx.append(float(p[0])); vy.append(float(p[1])); vz.append(float(p[2]))
         for si in range(n_sides):
             sn = (si + 1) % n_sides
-            ii.append(xc); jj.append(sn + n_sides); kk.append(si + n_sides)
+            ii.append(xc); jj.append(si + n_sides); kk.append(sn + n_sides)
 
     return vx, vy, vz, ii, jj, kk
 

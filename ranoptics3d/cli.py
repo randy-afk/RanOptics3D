@@ -33,30 +33,25 @@ def main():
                              'larger) so it works fully offline. Default '
                              'loads Plotly.js from a CDN — smaller file, '
                              'needs internet on first view.')
+    parser.add_argument('--realistic-magnets', action='store_true', default=False,
+                        help='Render quadrupoles/sextupoles/octupoles as '
+                             'multi-pole shapes and dipoles as a yoke-with-'
+                             'gap shape, instead of plain boxes.')
     args = parser.parse_args()
 
     if args.gui or args.lattice is None:
         try:
             from PySide6.QtWidgets import QApplication
-            from PySide6.QtGui import QColor, QPalette
         except ImportError:
             print("PySide6 required for GUI → pip install PySide6", file=sys.stderr)
             sys.exit(1)
-        from ._gui import RanOptics3DGUI, _HAVE_PYSIDE, BG, FG, PANEL, ACCENT, FG_DIM
+        from ._gui import RanOptics3DGUI, _HAVE_PYSIDE
+        from . import _theme
         if not _HAVE_PYSIDE:
             print("PySide6 not available.", file=sys.stderr); sys.exit(1)
         app = QApplication(sys.argv)
         app.setStyle("Fusion")
-        pal = QPalette()
-        for role, col in [
-            (QPalette.Window, BG), (QPalette.WindowText, FG),
-            (QPalette.Base, PANEL), (QPalette.AlternateBase, BG),
-            (QPalette.Text, FG), (QPalette.Button, PANEL),
-            (QPalette.ButtonText, FG), (QPalette.Highlight, ACCENT),
-            (QPalette.HighlightedText, FG), (QPalette.PlaceholderText, FG_DIM),
-        ]:
-            pal.setColor(role, QColor(col))
-        app.setPalette(pal)
+        _theme.apply_qpalette(app)
         win = RanOptics3DGUI(); win.show(); sys.exit(app.exec())
     else:
         from ._plot import plot_optics_3d
@@ -71,6 +66,7 @@ def main():
             element_half_height=args.half_height,
             bend_segments=args.bend_segments, srange=srange,
             embed_plotlyjs=args.offline,
+            realistic_magnets=args.realistic_magnets,
             show=True, log_fn=lambda m: print(m, end=''),
         )
 

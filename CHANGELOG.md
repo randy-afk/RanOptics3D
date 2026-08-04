@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.4.0] - 2026-07-31
+
+### New Features
+- **Light/Dark GUI theme** — the application's own chrome now has a full light theme to go with dark, plus a "☀ Light / 🌙 Dark" toggle in the header (kept in sync with RanOptics's `core/themes.py` palette, including its newer semantic colors: `PANEL2`, `ACCENTH`, `AINK`, `ASOFT`, `COPPER`, `CSOFT`). This is independent of the existing "Dark mode" checkbox in the 3D View tab, which still only controls the rendered HTML output's background. Toggling rebuilds the window with fresh colors and preserves all current form values, the output log, and the last-render/open-button state — see `_gui.py`'s `_rebuild_ui()`/`_collect_full_state()`/`_apply_full_state()`.
+
+### Fixed
+- The "Range & Universes" and "Beam & Inspector" tab labels rendered as "Range_Universes" / "Beam_Inspector" — Qt was interpreting the unescaped `&` as a mnemonic accelerator (swallowing the character and underlining the next letter). Escaped as `&&` so a literal `&` displays. Found from user-supplied screenshots of the actual running GUI.
+
+### Documentation
+- `docs/guide/gui-walkthrough.md` was missing several real controls that predate this session's work: the xsuite line name / MAD-X survey file fields on the Input tab, the fact that universe labels are editable, the Phase units dropdown and all five σ-tube overlay fields (envelope scale, opacity, segments, σ_x/σ_y color) on the Beam & Inspector tab, and the entire File/Presets/Run menu bar. Also added the "Fully self-contained HTML" row to the Theme table, missed when that feature was documented earlier. Found via a direct audit of `_gui.py`'s widget-building code against the docs.
+
+### Internal
+- `_theme.py` rewritten to mirror RanOptics's dynamic `_DARK`/`_LIGHT` dict + `apply_theme(mode)` pattern instead of a static one-time palette; `_gui.py` now re-syncs its own module globals from `_theme` on every toggle rather than doing a one-shot `from ._theme import BG, ...` (which would have gone stale the moment the theme switched).
+- Several `color: {CRUST}` uses that were actually "text drawn on an accent-colored background" (Run button, success button, section-header pills) now use the semantically-correct `AINK` instead, matching RanOptics's own convention.
+- `cli.py`'s inline `QPalette` role-mapping moved into a shared `_theme.apply_qpalette()` so both app startup and the new toggle use the same code.
+- Verified via a headless `QT_QPA_PLATFORM=offscreen` smoke test (GUI code itself stays outside the automated pytest suite, per this project's existing testing scope) exercising repeated toggles, state preservation, and stylesheet/menu-bar correctness.
+
+## [1.3.0] - 2026-07-31
+
+### New Features
+- **Realistic magnet shapes** (opt-in) — new `realistic_magnets` parameter (GUI: "Realistic magnet shapes" checkbox in the Elements tab; CLI: `--realistic-magnets`). Quadrupoles/sextupoles/octupoles render as a flat yoke plate + central beam bore + curved pole-piece "coil" brackets, modeled after the classic multipole-magnet illustration, instead of plain boxes. Dipoles render as a closed yoke frame with a visible beam-channel gap and coil accents. Correctors (kicker/hkicker/vkicker) — physically small dipoles — get the same dipole yoke shape. Coil-winding faces render in a shared copper accent color (`#c9852f`) via Plotly's per-face `facecolor`, contrasting against each type's own yoke-body color. Off by default; the fallback box rendering is byte-for-byte unchanged from before this feature.
+
+### Fixed
+- `_aperture_cylinder_mesh`'s entry/exit cap fan triangles had inverted winding — normals pointed into the tube instead of away from it. Pre-existing, unrelated to this session's other work; affects the `_mag_shape='cylinder'` magnet-size-file override and the new magnet-shape bore geometry. Fixed and added a regression test.
+
+### Internal
+- New geometry primitives in `_geometry.py`: `_quad_prism_mesh`/`_quad_prism_edges` (a `_box_mesh` generalized to any convex quadrilateral cross-section), `_curved_bracket_mesh`/`_curved_bracket_edges` (curved pole pieces approximated by chained straight segments, the same technique already used for bent dipoles), and `_concat_meshes_tagged` (per-face body/coil tagging for multi-color composite shapes). All still composed entirely of the same proven box/prism winding topology — no new triangulation risk.
+- Added ~15 new tests covering the new geometry (index-bounds, non-degenerate-triangle, and outward-normal integrity checks) and the per-face coloring / corrector-as-dipole behavior in `_build_element_meshes`.
+
 ## [1.2.0] - 2026-07-31
 
 ### New Features
