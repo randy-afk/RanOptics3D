@@ -11,12 +11,12 @@ try:
     from PySide6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
         QLineEdit, QCheckBox, QComboBox, QTabWidget, QScrollArea,
-        QTextEdit, QProgressBar, QMenuBar, QMenu, QFileDialog, QMessageBox,
-        QInputDialog, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy,
+        QTextEdit, QFileDialog, QMessageBox,
+        QInputDialog, QHBoxLayout, QVBoxLayout,
     )
     from PySide6.QtCore import Qt, Signal
     from PySide6.QtGui import (
-        QFont, QColor, QPalette, QAction, QPainter, QPen, QTextCharFormat,
+        QColor, QAction, QPainter, QPen, QTextCharFormat,
     )
     _HAVE_PYSIDE = True
 except ImportError:
@@ -33,49 +33,40 @@ from ._plot import _parse_camera_eye
 # ════════════════════════════════════════════════════════════════════════════
 
 
-try:
-    from PySide6.QtWidgets import (
-        QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
-        QLineEdit, QCheckBox, QComboBox, QTabWidget, QScrollArea,
-        QTextEdit, QProgressBar, QMenuBar, QMenu, QFileDialog, QMessageBox,
-        QInputDialog, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy,
-    )
-    from PySide6.QtCore import Qt, Signal
-    from PySide6.QtGui import (
-        QFont, QColor, QPalette, QAction, QPainter, QPen, QTextCharFormat,
-    )
-    _HAVE_PYSIDE = True
-except ImportError:
-    _HAVE_PYSIDE = False
+# ── RanOptics palette (kept in sync with core/themes.py) ──────────────────────
+# `_theme` colors are mutable at runtime (apply_theme() reassigns them for
+# the Light/Dark toggle), so we sync current values into this module's own
+# globals via a helper instead of a one-time `from ._theme import BG, ...`
+# — that would silently go stale the moment the theme switches.
+from . import _theme as _theme_mod
 
+_THEME_KEYS = (
+    'BG', 'MANTLE', 'CRUST', 'PANEL', 'PANEL2', 'SURFACE2', 'BORDER',
+    'FG', 'FG_DIM', 'FG_LBL', 'ACCENT', 'ACCENTH', 'AINK', 'ASOFT',
+    'COPPER', 'CSOFT', 'ERROR', 'WARN', 'RAN_CLR',
+    'ACCENT2', 'PEACH', 'HIGHLIGHT', 'SUCCESS',
+)
 
-# ── RanOptics palette (matches ranoptics.py exactly) ──────────────────────────
-BG       = "#2C5446"
-MANTLE   = "#234038"
-CRUST    = "#1a2f28"
-PANEL    = "#3D6B5C"
-SURFACE2 = "#4A7D6C"
-BORDER   = "#5A8A78"
-FG       = "#EEF5F2"
-FG_DIM   = "#A8C4BC"
-FG_LBL   = "#8AB0A6"
-ACCENT   = "#FDA769"
-RAN_CLR  = "#00e676"
-ERROR    = "#d62828"
-ACCENT2  = "#FDA769"
-WARN     = "#FEC868"
-SUCCESS  = "#00e676"
-TEAL     = "#FEC868"
+def _sync_theme_globals():
+    """Copy the _theme module's *current* color values into this module's
+    globals, so every f-string stylesheet below (which references these
+    as bare names) picks up whichever theme is currently active. Called
+    once at import time (below) and again after every _theme.apply_theme()
+    toggle."""
+    g = globals()
+    for k in _THEME_KEYS:
+        g[k] = getattr(_theme_mod, k)
 
-
-def _build_gui_fonts():
-    FONT_MAIN  = QFont(); FONT_MAIN.setPointSize(11)
-    FONT_BOLD  = QFont(); FONT_BOLD.setPointSize(11);  FONT_BOLD.setBold(True)
-    FONT_SMALL = QFont(); FONT_SMALL.setPointSize(11)
-    FONT_MONO  = QFont("Monospace"); FONT_MONO.setPointSize(10)
-    FONT_HDR   = QFont("Monospace"); FONT_HDR.setPointSize(16);  FONT_HDR.setBold(True)
-    FONT_SEC   = QFont(); FONT_SEC.setPointSize(11);  FONT_SEC.setBold(True)
-    return FONT_MAIN, FONT_BOLD, FONT_SMALL, FONT_MONO, FONT_HDR, FONT_SEC
+# Explicit initial bindings (rather than relying solely on the dynamic
+# loop above) so static analysis can see these names are defined before
+# every f-string stylesheet later in this file that references them.
+(BG, MANTLE, CRUST, PANEL, PANEL2, SURFACE2, BORDER,
+ FG, FG_DIM, FG_LBL, ACCENT, ACCENTH, AINK, ASOFT,
+ COPPER, CSOFT, ERROR, WARN, RAN_CLR,
+ ACCENT2, PEACH, HIGHLIGHT, SUCCESS) = (
+    getattr(_theme_mod, k) for k in _THEME_KEYS
+)
+_build_gui_fonts = _theme_mod.build_gui_fonts
 
 
 # Stylesheet snippets (initialised at GUI startup)
@@ -85,7 +76,7 @@ def _build_stylesheets():
             QLineEdit {{
                 background: {MANTLE}; border: 1px solid {BORDER};
                 border-radius: 8px; color: {FG}; padding: 4px 10px;
-                selection-background-color: {ACCENT}; selection-color: {CRUST};
+                selection-background-color: {ACCENT}; selection-color: {AINK};
             }}
             QLineEdit:focus {{
                 border-color: {ACCENT}; border-left: 3px solid {ACCENT};
@@ -104,7 +95,7 @@ def _build_stylesheets():
             QComboBox QAbstractItemView {{
                 background: {PANEL}; color: {FG}; border: 1px solid {BORDER};
                 border-radius: 6px; padding: 2px;
-                selection-background-color: {ACCENT}; selection-color: {CRUST};
+                selection-background-color: {ACCENT}; selection-color: {AINK};
                 outline: none;
             }}
         """,
@@ -225,7 +216,7 @@ def _sec(layout, title, FONT_SEC):
     w = QWidget(); h = QHBoxLayout(w)
     h.setContentsMargins(8, 8, 8, 2); h.setSpacing(8)
     lbl = QLabel(f"  {title.upper()}  "); lbl.setFont(FONT_SEC)
-    lbl.setStyleSheet(f"color: {CRUST}; background: {ACCENT2}; "
+    lbl.setStyleSheet(f"color: {AINK}; background: {ACCENT2}; "
                       f"border-radius: 4px; padding: 1px 4px;")
     line = QFrame(); line.setFrameShape(QFrame.HLine)
     line.setStyleSheet(f"color: {BORDER}; background: {BORDER};")
@@ -328,6 +319,33 @@ if _HAVE_PYSIDE:
             super().__init__()
             self.setWindowTitle("RanOptics3D — 3D Lattice Layout Viewer")
             self.resize(1280, 960); self.setMinimumSize(1000, 800)
+
+            (self.FONT_MAIN, self.FONT_BOLD, self.FONT_SMALL, self.FONT_MONO,
+             self.FONT_HDR, self.FONT_SEC) = _build_gui_fonts()
+
+            self._last_output = None
+            self._uni_checks = {}
+            self._uni_label_edits = {}
+            self._uni_n = 1
+            self._type_visible = {n: True for n in self._ELEMENT_TYPE_NAMES}
+            self._type_opacity = {}
+
+            self._build_ui()
+
+            self._sig_log.connect(self._log)
+            self._sig_done.connect(self._on_run_done)
+            self._sig_finally.connect(self._on_run_finally)
+
+        def _build_ui(self):
+            """(Re)build the entire window content from whatever theme
+            colors are currently active. Called once from __init__, and
+            again by _rebuild_ui() after a Light/Dark toggle — the same
+            "reconfigure everything from current globals" approach the
+            rest of this file already uses for individual sections,
+            applied to the whole window since colors are baked into each
+            widget's own stylesheet at construction time rather than one
+            global QSS.
+            """
             self.setStyleSheet(f"""
                 QMainWindow {{ background: {BG}; }}
                 QWidget {{ background: {BG}; }}
@@ -337,17 +355,7 @@ if _HAVE_PYSIDE:
                     padding: 4px 8px;
                 }}
             """)
-
-            (self.FONT_MAIN, self.FONT_BOLD, self.FONT_SMALL, self.FONT_MONO,
-             self.FONT_HDR, self.FONT_SEC) = _build_gui_fonts()
             self.SS = _build_stylesheets()
-
-            self._last_output = None
-            self._uni_checks = {}
-            self._uni_label_edits = {}
-            self._uni_n = 1
-            self._type_visible = {n: True for n in self._ELEMENT_TYPE_NAMES}
-            self._type_opacity = {}
 
             central = QWidget(); self.setCentralWidget(central)
             self._root_layout = QVBoxLayout(central)
@@ -361,12 +369,31 @@ if _HAVE_PYSIDE:
             self._build_log()
             self._build_statusbar()
 
-            self._sig_log.connect(self._log)
-            self._sig_done.connect(self._on_run_done)
-            self._sig_finally.connect(self._on_run_finally)
-
             self._refresh_recent_menu()
             self._refresh_preset_menu()
+
+        def _rebuild_ui(self):
+            """Tear down and rebuild the window content in place, used by
+            _set_theme_mode() after a Light/Dark toggle. The old central
+            widget is explicitly deleteLater()'d since setCentralWidget()
+            doesn't guarantee freeing the previous one on its own."""
+            old_central = self.centralWidget()
+            self.menuBar().clear()
+            self._build_ui()
+            if old_central is not None:
+                old_central.deleteLater()
+
+        def _set_theme_mode(self, mode):
+            if mode == _theme_mod._current_mode:
+                return
+            state = self._collect_full_state()
+            _theme_mod.apply_theme(mode)
+            _sync_theme_globals()
+            self._rebuild_ui()
+            self._apply_full_state(state)
+            app = QApplication.instance()
+            if app is not None:
+                _theme_mod.apply_qpalette(app)
 
         # ── Menu bar ──────────────────────────────────────────────────────────
 
@@ -428,7 +455,7 @@ if _HAVE_PYSIDE:
             name_lbl.setFont(self.FONT_HDR)
             name_lbl.setStyleSheet("background: transparent;")
             tv.addWidget(name_lbl)
-            sub = QLabel("3D Lattice Layout Viewer  •  v1.1.0")
+            sub = QLabel("3D Lattice Layout Viewer  •  v1.4.0")
             sub.setFont(self.FONT_SMALL)
             sub.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
             tv.addWidget(sub)
@@ -441,6 +468,32 @@ if _HAVE_PYSIDE:
                 l = QLabel(t); l.setFont(self.FONT_SMALL); l.setAlignment(Qt.AlignLeft)
                 l.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
                 rv.addWidget(l)
+
+            theme_row = QWidget(); theme_row.setStyleSheet("background: transparent;")
+            th = QHBoxLayout(theme_row)
+            th.setContentsMargins(0, 4, 0, 0); th.setSpacing(6)
+            th.addStretch()
+
+            def _pill_ss(active):
+                if active:
+                    return (f"QPushButton {{ background: {ASOFT}; "
+                            f"border: 1px solid {ACCENT}; border-radius: 11px; "
+                            f"color: {ACCENT}; padding: 2px 10px; }}")
+                return (f"QPushButton {{ background: transparent; "
+                        f"border: 1px solid {BORDER}; border-radius: 11px; "
+                        f"color: {FG_DIM}; padding: 2px 10px; }}"
+                        f"QPushButton:hover {{ border-color: {FG_DIM}; color: {FG}; }}")
+
+            is_dark = _theme_mod._current_mode == "dark"
+            self.light_btn = QPushButton("☀ Light"); self.light_btn.setFont(self.FONT_SMALL)
+            self.light_btn.setStyleSheet(_pill_ss(not is_dark))
+            self.light_btn.clicked.connect(lambda: self._set_theme_mode("light"))
+            self.dark_btn = QPushButton("🌙 Dark"); self.dark_btn.setFont(self.FONT_SMALL)
+            self.dark_btn.setStyleSheet(_pill_ss(is_dark))
+            self.dark_btn.clicked.connect(lambda: self._set_theme_mode("dark"))
+            th.addWidget(self.light_btn); th.addWidget(self.dark_btn)
+            rv.addWidget(theme_row)
+
             row.addWidget(rf)
             self._root_layout.addWidget(h)
 
@@ -476,9 +529,9 @@ if _HAVE_PYSIDE:
             self.run_btn.setStyleSheet(f"""
                 QPushButton {{
                     background: {ACCENT}; border-radius: 8px;
-                    color: {CRUST}; font-weight: bold; border: none;
+                    color: {AINK}; font-weight: bold; border: none;
                 }}
-                QPushButton:hover {{ background: {TEAL}; color: {CRUST}; }}
+                QPushButton:hover {{ background: {ACCENTH}; color: {AINK}; }}
                 QPushButton:disabled {{ background: {BORDER}; color: {FG_DIM}; border: none; }}
             """)
             row.addWidget(self.run_btn)
@@ -491,7 +544,7 @@ if _HAVE_PYSIDE:
                         background: {PANEL}; border: 1px solid {color};
                         border-radius: 8px; color: {color}; font-weight: 500;
                     }}
-                    QPushButton:hover {{ background: {color}; color: {CRUST}; }}
+                    QPushButton:hover {{ background: {color}; color: {AINK}; }}
                     QPushButton:disabled {{ color: {FG_DIM}; border-color: {BORDER}; background: {PANEL}; }}
                 """)
                 row.addWidget(b); return b
@@ -546,7 +599,11 @@ if _HAVE_PYSIDE:
             self._tab_r = QTabWidget(); self._tab_r.setStyleSheet(self.SS['tab'])
             self._tab_r.setFont(self.FONT_SEC)
 
-            for name in ("Input", "Range & Universes", "Beam & Inspector"):
+            # "&&" so Qt renders a literal "&" instead of treating it as a
+            # mnemonic accelerator (which would swallow the character and
+            # underline the next letter — e.g. "Range & Universes" would
+            # otherwise render as "Range Universes" with U underlined).
+            for name in ("Input", "Range && Universes", "Beam && Inspector"):
                 self._tab_l.addTab(QWidget(), name)
             for name in ("3D View", "Elements", "Overlays"):
                 self._tab_r.addTab(QWidget(), name)
@@ -754,6 +811,16 @@ if _HAVE_PYSIDE:
                   "focus, aspect sliders, live annotations, and pinned info — "
                   "no re-render needed for these.", self.FONT_SMALL)
 
+            r = _row(layout)
+            self.w_offline_html = _chk(r, "Fully self-contained HTML (works offline)",
+                                        self.FONT_MAIN, self.SS['chk'])
+            self.w_offline_html.setChecked(False)
+            _help(layout,
+                  "Off (default): output HTML loads Plotly.js from a CDN — "
+                  "small file, but needs internet the first time it's opened. "
+                  "On: embeds Plotly.js directly (~4 MB larger) so the file "
+                  "works with no internet connection at all.", self.FONT_SMALL)
+
             _sec(layout, "Beampipe", self.FONT_SEC)
             r = _row(layout)
             self.w_show_pipe = _chk(r, "Show beampipe centerline",
@@ -826,6 +893,18 @@ if _HAVE_PYSIDE:
             _help(layout,
                   "White edge lines on elements. Turn off to hide segment "
                   "outlines on curved dipoles.", self.FONT_SMALL)
+
+            r = _row(layout)
+            self.w_realistic_magnets = _chk(
+                r, "Realistic magnet shapes (quad/sext/octupole/dipole)",
+                self.FONT_MAIN, self.SS['chk'])
+            self.w_realistic_magnets.setChecked(False)
+            _help(layout,
+                  "Renders quadrupoles/sextupoles/octupoles as multi-pole "
+                  "shapes and dipoles with a visible beam gap, instead of "
+                  "plain boxes. Off by default — uncheck to fall back to "
+                  "the simple box rendering if this doesn't look right for "
+                  "your lattice.", self.FONT_SMALL)
 
             _sec(layout, "Mirror", self.FONT_SEC)
             r = _row(layout)
@@ -1132,6 +1211,7 @@ if _HAVE_PYSIDE:
                 beampipe_width=_i(self.w_pipe_width, 2),
                 show_markers=self.w_show_markers.isChecked(),
                 show_outlines=self.w_show_outlines.isChecked(),
+                realistic_magnets=self.w_realistic_magnets.isChecked(),
                 bend_segments=_i(self.w_bend_seg, 12),
                 dark_mode=self.w_dark.isChecked(),
                 show=False,
@@ -1159,6 +1239,7 @@ if _HAVE_PYSIDE:
                 focus_element=self.w_focus_elem.text().strip() or None,
                 focus_radius=_f(self.w_focus_radius, None),
                 add_control_panel=self.w_control_panel.isChecked(),
+                embed_plotlyjs=self.w_offline_html.isChecked(),
                 show_twiss=self.w_show_twiss.isChecked(),
                 aperture_file=self.w_aperture_file.text().strip() or None,
                 emit_x=_f(self.w_emit_x, None),
@@ -1270,9 +1351,9 @@ if _HAVE_PYSIDE:
             self.open_btn.setStyleSheet(f"""
                 QPushButton {{
                     background: {SUCCESS}; border: 1px solid {SUCCESS};
-                    border-radius: 8px; color: {CRUST}; font-weight: bold;
+                    border-radius: 8px; color: {AINK}; font-weight: bold;
                 }}
-                QPushButton:hover {{ background: {SUCCESS}; color: {CRUST}; opacity: 0.9; }}
+                QPushButton:hover {{ background: {SUCCESS}; color: {AINK}; opacity: 0.9; }}
             """)
             self._save_recent(input_file)
             self._set_status("Done ✓")
@@ -1290,11 +1371,13 @@ if _HAVE_PYSIDE:
 
         # ── Log ───────────────────────────────────────────────────────────────
 
-        _LOG_COLORS = {"ok": SUCCESS, "warn": WARN, "error": ERROR,
-                       "dim": FG_DIM, "info": FG}
-
         def _log(self, text, tag="info"):
-            color = self._LOG_COLORS.get(tag, FG)
+            # Built fresh each call (not a class attribute) so it always
+            # reflects whichever theme is currently active, not whatever
+            # was in effect when the class body first executed.
+            log_colors = {"ok": SUCCESS, "warn": WARN, "error": ERROR,
+                          "dim": FG_DIM, "info": FG}
+            color = log_colors.get(tag, FG)
             fmt = QTextCharFormat()
             fmt.setForeground(QColor(color))
             fmt.setFont(self.FONT_MONO)
@@ -1377,6 +1460,7 @@ if _HAVE_PYSIDE:
                 'dark':         self.w_dark.isChecked(),
                 'show_gizmo':   self.w_show_gizmo.isChecked(),
                 'control_panel': self.w_control_panel.isChecked(),
+                'offline_html': self.w_offline_html.isChecked(),
                 'show_pipe':    self.w_show_pipe.isChecked(),
                 'pipe_color':   self.w_pipe_color.text(),
                 'pipe_width':   self.w_pipe_width.text(),
@@ -1384,6 +1468,7 @@ if _HAVE_PYSIDE:
                 'half_h':       self.w_half_h.text(),
                 'bend_seg':     self.w_bend_seg.text(),
                 'show_markers': self.w_show_markers.isChecked(),
+                'realistic_magnets': self.w_realistic_magnets.isChecked(),
                 'flip_bend':    self.w_flip_bend.isChecked(),
                 'annot':        self.w_annot.text(),
                 'annot_size':   self.w_annot_size.text(),
@@ -1423,12 +1508,14 @@ if _HAVE_PYSIDE:
             _sc(self.w_z_up, 'z_up'); _sc(self.w_dark, 'dark')
             _sc(self.w_show_gizmo, 'show_gizmo')
             _sc(self.w_control_panel, 'control_panel')
+            _sc(self.w_offline_html, 'offline_html')
             _sc(self.w_show_pipe, 'show_pipe')
             _st(self.w_pipe_color, 'pipe_color')
             _st(self.w_pipe_width, 'pipe_width')
             _st(self.w_half_w, 'half_w'); _st(self.w_half_h, 'half_h')
             _st(self.w_bend_seg, 'bend_seg')
             _sc(self.w_show_markers, 'show_markers')
+            _sc(self.w_realistic_magnets, 'realistic_magnets')
             _sc(self.w_flip_bend, 'flip_bend')
             _st(self.w_annot, 'annot'); _st(self.w_annot_size, 'annot_size')
             _st(self.w_tunnel_file, 'tunnel_file')
@@ -1442,6 +1529,79 @@ if _HAVE_PYSIDE:
             for n, v in (data.get('type_opacity') or {}).items():
                 if n in self._type_op_widgets:
                     self._type_op_widgets[n].setText(str(v))
+
+        # ── Full state snapshot (theme-toggle rebuild, not the named-preset
+        # file format) — everything _collect_preset misses that a mid-
+        # session UI rebuild must not lose: the loaded input file and
+        # backend-specific paths, Beam & Inspector tab fields, and the
+        # output log / "last render" state.  Universe checkbox selections
+        # are intentionally not preserved (they reset to defaults when
+        # w_input's text is restored and re-triggers the selector).
+
+        def _collect_full_state(self):
+            data = self._collect_preset()
+            data.update({
+                'input':        self.w_input.text(),
+                'xsuite_line':  self.w_xsuite_line.text(),
+                'madx_survey':  self.w_madx_survey.text(),
+                'aperture_file': self.w_aperture_file.text(),
+                'emit_x':       self.w_emit_x.text(),
+                'emit_y':       self.w_emit_y.text(),
+                'sigma_dp':     self.w_sigma_dp.text(),
+                'show_twiss':   self.w_show_twiss.isChecked(),
+                'twiss_scale':  self.w_twiss_scale.text(),
+                'twiss_opacity': self.w_twiss_opacity.text(),
+                'twiss_nphi':   self.w_twiss_nphi.text(),
+                'twiss_cx':     self.w_twiss_cx.text(),
+                'twiss_cy':     self.w_twiss_cy.text(),
+                'phase_norm_index': self.w_phase_norm.currentIndex(),
+                'inspector_chks': {k: cb.isChecked()
+                                    for k, cb in self._inspector_chks.items()},
+                'log_html':     self.log.toHtml(),
+                'last_output':  self._last_output,
+            })
+            return data
+
+        def _apply_full_state(self, data):
+            # Restore the input path first — its textChanged signal
+            # re-triggers auto-detect (code backend, xsuite/MAD-X rows,
+            # universe selector), then _apply_preset below overrides
+            # 'code' back to the explicitly saved value in case auto-
+            # detect guessed differently than what was actually selected.
+            self.w_input.setText(data.get('input', ''))
+            self._apply_preset(data)
+
+            self.w_xsuite_line.setText(data.get('xsuite_line', ''))
+            self.w_madx_survey.setText(data.get('madx_survey', ''))
+            self.w_aperture_file.setText(data.get('aperture_file', ''))
+            self.w_emit_x.setText(data.get('emit_x', ''))
+            self.w_emit_y.setText(data.get('emit_y', ''))
+            self.w_sigma_dp.setText(data.get('sigma_dp', ''))
+            self.w_show_twiss.setChecked(bool(data.get('show_twiss', False)))
+            self.w_twiss_scale.setText(data.get('twiss_scale', '1.0'))
+            self.w_twiss_opacity.setText(data.get('twiss_opacity', '0.35'))
+            self.w_twiss_nphi.setText(data.get('twiss_nphi', '16'))
+            self.w_twiss_cx.setText(data.get('twiss_cx', '#74c0fc'))
+            self.w_twiss_cy.setText(data.get('twiss_cy', '#69db7c'))
+            self.w_phase_norm.setCurrentIndex(data.get('phase_norm_index', 0))
+            for k, v in (data.get('inspector_chks') or {}).items():
+                if k in self._inspector_chks:
+                    self._inspector_chks[k].setChecked(bool(v))
+
+            self.log.setHtml(data.get('log_html', ''))
+            cursor = self.log.textCursor()
+            cursor.movePosition(cursor.MoveOperation.End)
+            self.log.setTextCursor(cursor)
+            self._last_output = data.get('last_output')
+            if self._last_output:
+                self.open_btn.setEnabled(True)
+                self.open_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background: {SUCCESS}; border: 1px solid {SUCCESS};
+                        border-radius: 8px; color: {AINK}; font-weight: bold;
+                    }}
+                    QPushButton:hover {{ background: {SUCCESS}; color: {AINK}; opacity: 0.9; }}
+                """)
 
         def _preset_save_dialog(self):
             name, ok = QInputDialog.getText(self, "Save Preset", "Preset name:")

@@ -6,6 +6,41 @@ The GUI is split into two panels. The **left panel** controls what to load and h
 
 ---
 
+## Header
+
+The header shows the app name/version, author info, and a **☀ Light / 🌙 Dark**
+toggle in the top-right — this switches the *application's own* color
+theme (kept in sync with RanOptics's palette) and is unrelated to the
+**Dark mode** checkbox in the 3D View tab, which controls the background
+of the *rendered HTML output* instead. All your current form values, the
+output log, and the last-render state carry over across a toggle.
+
+---
+
+## Menu Bar
+
+| Menu | Item | Description |
+|---|---|---|
+| **File** | Browse Input… | Same as the Input tab's Browse button |
+| | Save Output As… | Same as the Input tab's Save as button |
+| | Recent Files | Submenu listing recently rendered input files — click one to load it |
+| | Copy Output Path | Copies the last rendered HTML's full path to the clipboard |
+| **Presets** | Save Current as Preset… | Saves every field on this page (except the input file path and Beam & Inspector fields — see note below) under a name you choose, stored in `~/.ranoptics3d_presets.json` |
+| | Load Preset | Submenu listing saved presets — click one to apply it |
+| | Delete a preset… | Remove a saved preset by name |
+| **Run** | ▶ Run | Same as the bottom bar's Render 3D button |
+| | 🔍 Inspect lattice | Same as the bottom bar's Inspect button |
+
+!!! note
+    Named presets intentionally don't include the input file path or
+    Beam & Inspector tab fields (emittances, Twiss/σ-tube settings) —
+    they're meant for reusable *rendering* configurations across
+    different lattices. All of this does carry over automatically,
+    though, when you use the Light/Dark theme toggle, since that's
+    preserving your current session rather than saving a reusable preset.
+
+---
+
 ## Left Panel
 
 ### Input Tab
@@ -16,19 +51,28 @@ Select your backend, point to your input file, and configure output.
 |---|---|
 | **Input file** | Path to your lattice file — see [Supported Backends](../reference/backends.md). Auto-detected from extension: `.init` → Tao, `.ele` → ELEGANT, `.json` → xsuite, `.tfs` → MAD-X |
 | **Code backend** | Backend override. Normally auto-detected — only set manually if your file has a non-standard extension |
+| **xsuite line name** *(xsuite only)* | Name of the line to load from the Environment JSON. Leave blank to auto-detect (picks the line with the most elements) |
+| **Survey file (.tfs)** *(MAD-X only)* | Path to a MAD-X `SURVEY` output file, required for the 3D floor-plan layout — without it the lattice loads but has no spatial position data |
 | **Output HTML** | Filename for the generated `.html` file. Open in any browser to view the 3D scene |
 | **Save as** | Choose a different output path or filename |
 | **Plot title** | Optional title embedded in the rendered HTML |
+
+!!! note
+    The xsuite and MAD-X rows only appear when that backend is selected
+    (auto-detected from the input file's extension, or set manually via
+    Code backend).
 
 ---
 
 ### Range & Universes Tab
 
+![Range & Universes tab](../assets/gui-range-universes.png)
+
 For multi-universe lattices such as Tao configurations with multiple rings.
 
 | Control | Description |
 |---|---|
-| **Universe selector** | Choose which universes to include in the plot |
+| **Universe selector** | One checkbox + editable label per universe. Uncheck to exclude a universe from the plot; the label text (used in trace names and the legend) can be edited freely |
 | **s-range** | Restrict the rendered lattice to a specific s interval (meters) |
 
 !!! note
@@ -38,12 +82,19 @@ For multi-universe lattices such as Tao configurations with multiple rings.
 
 ### Beam & Inspector Tab
 
+![Beam & Inspector tab](../assets/gui-beam-inspector.png)
+
 | Control | Description |
 |---|---|
-| **εx, εy** | Horizontal and vertical normalized emittances for beam size calculations |
-| **Energy spread** | σ_δ used for the σ tube overlay |
-| **Optics panels** | Toggle which plots appear in the Twiss Inspector: β, σ, η, orbit, phase advance |
-| **σ tube** | Enable/disable the 3D beam envelope tube overlay |
+| **εx, εy** | Horizontal and vertical geometric emittances (m·rad) used for beam size σ = √(ε·β) in the Twiss Inspector and the 3D σ tube overlay |
+| **σ_dp / p** | Momentum spread |
+| **Optics panels** | Toggle which plots appear in the Twiss Inspector: β, σ, η (dispersion), orbit, phase advance. β and σ are on by default; σ requires εx/εy to be set, orbit requires `.cen` (ELEGANT) or equivalent |
+| **Phase units** | Only affects the phase-advance panel: cumulative radians, or normalized to 0→1 per 2π |
+| **Show σ tube in 3D view** | Enable/disable the 3D beam envelope tube overlay (off by default) |
+| **Envelope scale** | Multiplier on the tube radius — 1 = 1σ envelope, 3 = 3σ, etc. |
+| **Tube opacity** | 0.0–1.0 transparency of the σ tube mesh |
+| **Tube segments** | Azimuthal resolution of the tube's circular cross-section — higher is smoother but heavier |
+| **σ_x color / σ_y color** | Hex colors for the horizontal/vertical crosshair lines drawn at each element alongside the tube |
 | **Magnet size file** | Load a definition file to override element box dimensions — see [Magnet Size File](../reference/magnet-size-file.md) |
 
 ---
@@ -83,6 +134,7 @@ Controls the overall appearance and camera behavior of the rendered scene.
 | **Dark mode** | Renders the scene with a dark background |
 | **Show XYZ axis gizmo at origin** | Displays a small XYZ orientation indicator at the world origin |
 | **Embed live control panel in HTML** | Adds an interactive sidebar to the rendered HTML — no re-render needed to use it. See [Live Control Panel](#live-control-panel) below |
+| **Fully self-contained HTML (works offline)** | Off (default): output loads Plotly.js from a CDN — small file, needs internet the first time it's opened. On: embeds Plotly.js directly (~4 MB larger) so the file works with no internet connection at all |
 
 #### Beampipe
 
@@ -95,6 +147,8 @@ Controls the overall appearance and camera behavior of the rendered scene.
 ---
 
 ### Elements Tab
+
+![Elements tab](../assets/gui-elements.png)
 
 Controls the geometry and visibility of individual element types in the 3D scene.
 
@@ -121,6 +175,7 @@ Each element type (Dipole, Quadrupole, Sextupole, Octupole, Kicker, Monitor, RF 
 | **Opacity** | 0.0–1.0. Partial values fade elements — useful for focusing attention on specific magnet families |
 | **Include markers/monitors as boxes** | Markers and monitors are zero-length elements; by default they are not drawn as boxes. Enable this to render them as small boxes |
 | **Show element outlines** | Draws white edge lines on element boxes. Turn off to hide segment outlines on curved dipoles for a cleaner look |
+| **Realistic magnet shapes** | Off by default (plain boxes). When enabled, quadrupoles/sextupoles/octupoles render as a yoke plate + beam bore + curved pole-piece coils, and dipoles/correctors (kicker/hkicker/vkicker) render as a yoke frame with a visible beam gap and coil accents. Coil windings use a shared copper accent color — see [Element Colors](../reference/element-colors.md). Uncheck to fall back to the simple box rendering if this doesn't suit your lattice |
 
 #### Mirror
 
@@ -131,6 +186,8 @@ Each element type (Dipole, Quadrupole, Sextupole, Octupole, Kicker, Monitor, RF 
 ---
 
 ### Overlays Tab
+
+![Overlays tab](../assets/gui-overlays.png)
 
 Controls additional geometry overlaid on the 3D scene.
 

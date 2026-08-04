@@ -9,7 +9,6 @@ import re
 import subprocess
 import tempfile
 from pathlib import Path
-import numpy as np
 
 def _run_elegant(ele_file, log_fn=None):
     def L(m):
