@@ -16,6 +16,36 @@
 Select **Tao** and point to your `tao.init` file. Multi-universe lattices are supported —
 use the **Range & Universes** tab to select which rings to render.
 
+### Bmad library path
+
+RanOptics3D loads Tao/Bmad through `pytao`, which normally auto-discovers your Bmad
+install with no configuration needed. The **Bmad library** and **Extra library dirs**
+fields (Input tab, shown only when Tao is selected) are optional overrides for the
+cases where auto-discovery doesn't work — most commonly the
+[standalone executable](https://github.com/randy-afk/ranoptics3d/releases), which has
+no way to find a Bmad install on your machine and always needs this set explicitly.
+
+- **Bmad library**: full path to `libtao.so` (Linux), `libtao.dylib` (macOS), or
+  `libtao.dll` (Windows).
+- **Extra library dirs**: comma-separated directories to search for Bmad's own
+  dependencies (GSL, LAPACK, FFTW3, HDF5, ...), if they aren't already sitting next
+  to `libtao.*` itself.
+
+Both fields save automatically and are remembered across launches — set them once.
+
+**Finding your library**, if you don't already know the path: for a conda-forge
+Bmad install, it's under your environment's `lib/` directory —
+
+```bash
+find "$CONDA_PREFIX/lib" -maxdepth 1 -name "libtao*"
+```
+
+If Bmad was built from source, check `$ACC_ROOT_DIR` instead:
+
+```bash
+find "$ACC_ROOT_DIR" -name "libtao*" 2>/dev/null
+```
+
 ---
 
 ## ELEGANT

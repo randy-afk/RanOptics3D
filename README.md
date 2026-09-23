@@ -46,6 +46,18 @@ For Tao/Bmad backend:
 pip install pytao
 ```
 
+### Standalone Executables
+
+No Python install needed — download a prebuilt binary from the
+[GitHub Releases](https://github.com/randy-afk/ranoptics3d/releases) page:
+
+- **Linux** — `RanOptics3D-Linux`
+- **Windows** — `RanOptics3D-Windows.exe`
+- **macOS** — `RanOptics3D-macOS`
+
+If you use the Tao/Bmad backend, the standalone build needs to be pointed at your
+Bmad install explicitly — see [Bmad library path](docs/reference/backends.md#bmad-library-path).
+
 ---
 
 ## Usage

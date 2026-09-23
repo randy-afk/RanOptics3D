@@ -1,0 +1,126 @@
+name: Build RanOptics3D Executables
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build RanOptics3D on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: RanOptics3D
+            asset_name: RanOptics3D-Linux
+            data_sep: ":"
+          - os: windows-latest
+            artifact_name: RanOptics3D.exe
+            asset_name: RanOptics3D-Windows.exe
+            data_sep: ";"
+          - os: macos-latest
+            artifact_name: RanOptics3D
+            asset_name: RanOptics3D-macOS
+            data_sep: ":"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Linux GUI System Dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxcb-cursor0 libxkbcommon-x11-0
+
+      - name: Install Python Dependencies
+        # ELEGANT and MAD-X stay fully external — RanOptics3D either shells
+        # out to the elegant/sddsconvert binaries on PATH, or only parses
+        # MAD-X's own output files, so nothing to bundle for either.
+        #
+        # pytao IS bundled (it's a pure Python/ctypes wrapper, packages
+        # cleanly), but the actual compiled Bmad library (libtao.so, from
+        # conda-forge's `bmad` package) is NOT and can't reasonably be — it
+        # pulls in a long chain of its own native deps (GSL, LAPACK, FFTW3,
+        # HDF5...). Users point RanOptics3D at their own installed library
+        # via the "Bmad library" field (ranoptics3d/_backends/tao.py's
+        # bmad_lib), which loads it by explicit absolute path — bypassing
+        # both PyInstaller's patched ctypes.util.find_library() (which
+        # blocks runtime rediscovery of anything not bundled at build time)
+        # and the bootloader's LD_LIBRARY_PATH rewrite.
+        #
+        # xsuite is NOT bundled: its build_tracker()/twiss() path JIT-
+        # compiles C kernels via cffi at runtime, which needs an actual C
+        # compiler on the machine running the binary — a much bigger
+        # requirement than "self-contained executable" implies.
+        #
+        # No kaleido: RanOptics3D's Screenshot feature is client-side
+        # canvas capture in the browser control panel's JS, not a
+        # server-side render, so there's nothing to bundle for it.
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install numpy plotly PySide6 pytao
+
+      - name: Fetch modern OpenSSL for bundling (Linux only)
+        # PyInstaller auto-bundles whatever libssl.so.3/libcrypto.so.3 the
+        # runner's Python is linked against (Ubuntu's system OpenSSL, capped
+        # at symbol version OPENSSL_3.0.x). Python's own ssl/hashlib modules
+        # load that bundled copy automatically, early, before the app even
+        # shows a window — which permanently claims the libssl.so.3 SONAME
+        # for the whole process. When Tao/Bmad is later loaded from a
+        # conda-forge install (whose libcurl.so.4 needs OPENSSL_3.2.0+), no
+        # amount of preloading in tao.py can dislodge the SONAME that's
+        # already claimed. Fetching conda-forge's own openssl package (the
+        # same distribution Bmad itself is built against) and overriding
+        # PyInstaller's bundled copy with --add-binary means whichever loads
+        # first is already new enough for both Python and Bmad, so there's
+        # no race to lose.
+        #
+        # The version pin matters: conda-forge's `openssl` now resolves to
+        # 4.0.x, which ships libssl.so.4/libcrypto.so.4. We specifically need
+        # SONAME libssl.so.3, because that's what both Python's _ssl and
+        # Bmad's libcurl.so.4 are linked against — a 4.x copy satisfies
+        # neither. >=3.2 guarantees the OPENSSL_3.2.0 symbols libcurl needs.
+        if: runner.os == 'Linux'
+        run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj bin/micromamba
+          ./bin/micromamba create -p ./openssl_env -c conda-forge "openssl>=3.2,<4" -y
+          test -f ./openssl_env/lib/libssl.so.3
+          test -f ./openssl_env/lib/libcrypto.so.3
+
+      - name: Build Executable with PyInstaller
+        shell: bash
+        run: |
+          EXTRA_ARGS=()
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            EXTRA_ARGS+=(--add-binary "./openssl_env/lib/libssl.so.3:.")
+            EXTRA_ARGS+=(--add-binary "./openssl_env/lib/libcrypto.so.3:.")
+          fi
+          pyinstaller --onefile --noconsole --name RanOptics3D \
+            --collect-all PySide6 --collect-all plotly --collect-all pytao \
+            --collect-data ranoptics3d \
+            "${EXTRA_ARGS[@]}" \
+            RanOptics3D.py
+
+      - name: Rename Binary for Asset Upload
+        shell: bash
+        run: |
+          mv dist/${{ matrix.artifact_name }} dist/${{ matrix.asset_name }}
+
+      - name: Attach Binary to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.asset_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

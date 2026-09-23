@@ -181,6 +181,13 @@ def plot_optics_3d(
     universes=None,
     xsuite_line=None,
     madx_survey=None,
+    bmad_lib=None,             # explicit path to libtao.so/.dylib/.dll —
+                               # only needed for pytao's auto-discovery to
+                               # be bypassed (e.g. in a standalone packaged
+                               # build with no RPATH into a Bmad install)
+    bmad_extra_paths=None,     # extra dirs to search for libtao's own
+                               # shared-library dependencies (GSL, LAPACK,
+                               # FFTW3, HDF5, ...)
     aspect='data',  # 'data' preserve proportions, 'cube' equal, 'manual' use scale_*
     scale_x=1.0, scale_y=1.0, scale_z=1.0,
     srange=None,
@@ -237,6 +244,13 @@ def plot_optics_3d(
     universes           : list of universe indices (Tao multi-universe)
     xsuite_line         : line name inside an xsuite Environment JSON
     madx_survey         : path to MAD-X survey.tfs
+    bmad_lib            : explicit path to libtao.so/.dylib/.dll, bypassing
+                          pytao's own auto-discovery. Only needed when
+                          auto-discovery can't find Bmad (e.g. a standalone
+                          packaged build).
+    bmad_extra_paths    : extra directories to search for libtao's own
+                          shared-library dependencies (GSL, LAPACK, FFTW3,
+                          HDF5, ...), if not already next to bmad_lib.
     aspect              : 'data' (real proportions), 'cube' (equal axes),
                           or 'manual' (use scale_x/y/z)
     scale_x, scale_y, scale_z : axis scale ratios when aspect='manual'.
@@ -300,7 +314,8 @@ def plot_optics_3d(
     # ── Load lattice ─────────────────────────────────────────────────────────
     code = code.lower()
     if code == 'tao':
-        data = load_tao(input_file, log_fn=log_fn)
+        data = load_tao(input_file, log_fn=log_fn,
+                         bmad_lib=bmad_lib, bmad_extra_paths=bmad_extra_paths)
     elif code == 'elegant':
         data = load_elegant(input_file, log_fn=log_fn)
     elif code == 'xsuite':

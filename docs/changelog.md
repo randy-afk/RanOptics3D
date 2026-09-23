@@ -2,6 +2,15 @@
 
 ---
 
+## v1.5.0 — 2026-09-22
+
+### New Features
+
+- **Bmad library path override** — new "Bmad library" / "Extra library dirs" fields on the Input tab (Tao backend only; CLI: `--bmad-lib` / `--bmad-extra-paths`) let you point RanOptics3D at an explicit Bmad shared library, bypassing `pytao`'s own auto-discovery. Mainly needed for the new standalone executable, which has no way to find a Bmad install on its own. Both fields save automatically and are remembered across launches.
+- **Standalone executable releases** — Linux/Windows/macOS binaries are now built automatically via GitHub Actions on every published release, using the same PyInstaller + Bmad-library-staging approach already proven on RanOptics (2D).
+
+---
+
 ## v1.4.0 — 2026-07-31
 
 ### New Features

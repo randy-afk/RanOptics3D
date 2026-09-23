@@ -37,6 +37,15 @@ def main():
                         help='Render quadrupoles/sextupoles/octupoles as '
                              'multi-pole shapes and dipoles as a yoke-with-'
                              'gap shape, instead of plain boxes.')
+    parser.add_argument('--bmad-lib', default=None, metavar='PATH',
+                        help='Explicit path to libtao.so/.dylib/.dll, '
+                             'bypassing pytao auto-discovery. Only needed '
+                             'when auto-discovery fails to find Bmad (e.g. '
+                             'a standalone packaged build).')
+    parser.add_argument('--bmad-extra-paths', default=None, metavar='DIRS',
+                        help='Comma-separated extra directories to search '
+                             "for libtao's own shared-library dependencies "
+                             '(GSL, LAPACK, FFTW3, HDF5, ...).')
     args = parser.parse_args()
 
     if args.gui or args.lattice is None:
@@ -58,6 +67,8 @@ def main():
         srange = None
         if args.s_start is not None and args.s_end is not None:
             srange = f'{args.s_start}:{args.s_end}'
+        bmad_extra_paths = (args.bmad_extra_paths.split(',')
+                            if args.bmad_extra_paths else None)
         plot_optics_3d(
             args.lattice, code=args.code, output_file=args.output,
             madx_survey=args.survey, dark_mode=args.dark,
@@ -67,6 +78,7 @@ def main():
             bend_segments=args.bend_segments, srange=srange,
             embed_plotlyjs=args.offline,
             realistic_magnets=args.realistic_magnets,
+            bmad_lib=args.bmad_lib, bmad_extra_paths=bmad_extra_paths,
             show=True, log_fn=lambda m: print(m, end=''),
         )
 

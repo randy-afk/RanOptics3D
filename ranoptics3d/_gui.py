@@ -307,8 +307,9 @@ if _HAVE_PYSIDE:
         _sig_done     = Signal(str)
         _sig_finally  = Signal()
 
-        _RECENT_FILE = Path.home() / ".ranoptics3d_recent.json"
-        _PRESET_FILE = Path.home() / ".ranoptics3d_presets.json"
+        _RECENT_FILE   = Path.home() / ".ranoptics3d_recent.json"
+        _PRESET_FILE   = Path.home() / ".ranoptics3d_presets.json"
+        _SETTINGS_FILE = Path.home() / ".ranoptics3d_settings.json"
         _MAX_RECENT  = 8
 
         # The element legend names the GUI exposes as visibility toggles
@@ -455,7 +456,7 @@ if _HAVE_PYSIDE:
             name_lbl.setFont(self.FONT_HDR)
             name_lbl.setStyleSheet("background: transparent;")
             tv.addWidget(name_lbl)
-            sub = QLabel("3D Lattice Layout Viewer  •  v1.4.0")
+            sub = QLabel("3D Lattice Layout Viewer  •  v1.5.0")
             sub.setFont(self.FONT_SMALL)
             sub.setStyleSheet(f"color: {FG_DIM}; background: transparent;")
             tv.addWidget(sub)
@@ -659,7 +660,30 @@ if _HAVE_PYSIDE:
             self.w_code = _dd(r, ["tao", "elegant", "xsuite", "madx"],
                               self.FONT_MAIN, self.SS['combo'], width=110)
             self.w_code.currentTextChanged.connect(
-                lambda _: (self._update_xsuite_rows(), self._update_madx_rows()))
+                lambda _: (self._update_xsuite_rows(), self._update_madx_rows(),
+                          self._update_tao_rows()))
+
+            self._tao_widget = QWidget()
+            self._tao_widget.setStyleSheet("background: transparent;")
+            tv = QVBoxLayout(self._tao_widget)
+            tv.setContentsMargins(0, 0, 0, 0); tv.setSpacing(0)
+            rt = _row(tv); _lbl(rt, "Bmad library", self.FONT_MAIN)
+            self.w_bmad_lib = _ent(rt, self.FONT_MONO, self.SS['entry'],
+                                    width=200,
+                                    placeholder="optional — auto-detected if blank")
+            _btn(rt, "Browse", self._browse_bmad_lib, self.FONT_MAIN, width=70)
+            rt2 = _row(tv); _lbl(rt2, "Extra library dirs", self.FONT_MAIN)
+            self.w_bmad_extra_paths = _ent(rt2, self.FONT_MONO, self.SS['entry'],
+                                            width=240,
+                                            placeholder="comma-separated, optional")
+            _help(tv,
+                  "Only needed if pytao can't auto-discover Bmad on its own "
+                  "(e.g. a standalone packaged build). Saved automatically — "
+                  "set once, applies on every future launch.", self.FONT_SMALL)
+            layout.addWidget(self._tao_widget)
+            self.w_bmad_lib.editingFinished.connect(self._save_settings)
+            self.w_bmad_extra_paths.editingFinished.connect(self._save_settings)
+            self._load_settings()
 
             self._xsuite_widget = QWidget()
             self._xsuite_widget.setStyleSheet("background: transparent;")
@@ -1058,6 +1082,7 @@ if _HAVE_PYSIDE:
                 self.w_code.setCurrentText('madx')
             self._update_xsuite_rows()
             self._update_madx_rows()
+            self._update_tao_rows()
 
         def _update_xsuite_rows(self):
             if self.w_code.currentText() == 'xsuite':
@@ -1070,6 +1095,12 @@ if _HAVE_PYSIDE:
                 self._madx_widget.show()
             else:
                 self._madx_widget.hide()
+
+        def _update_tao_rows(self):
+            if self.w_code.currentText() == 'tao':
+                self._tao_widget.show()
+            else:
+                self._tao_widget.hide()
 
         def _clear_universe_selector(self):
             while self._uni_checks_v.count():
@@ -1133,6 +1164,14 @@ if _HAVE_PYSIDE:
                 "TFS files (*.tfs);;All files (*.*)")
             if f:
                 self.w_madx_survey.setText(f)
+
+        def _browse_bmad_lib(self):
+            f, _ = QFileDialog.getOpenFileName(
+                self, "Select Bmad shared library", "",
+                "Shared libraries (*.so *.dylib *.dll);;All files (*.*)")
+            if f:
+                self.w_bmad_lib.setText(f)
+                self._save_settings()
 
         def _browse_tunnel(self):
             f, _ = QFileDialog.getOpenFileName(
@@ -1218,6 +1257,10 @@ if _HAVE_PYSIDE:
                 universes=self._get_selected_universes(),
                 xsuite_line=self.w_xsuite_line.text().strip() or None,
                 madx_survey=self.w_madx_survey.text().strip() or None,
+                bmad_lib=self.w_bmad_lib.text().strip() or None,
+                bmad_extra_paths=([p.strip() for p in
+                                    self.w_bmad_extra_paths.text().split(',') if p.strip()]
+                                   or None),
                 aspect=aspect_v,
                 scale_x=_f(self.w_scale_x, 1.0),
                 scale_y=_f(self.w_scale_y, 1.0),
@@ -1307,7 +1350,9 @@ if _HAVE_PYSIDE:
                     code = kwargs['code']; inp = kwargs['input_file']
                     log = lambda m: self._sig_log.emit(m, "info")
                     if code == 'tao':
-                        data = load_tao(inp, log_fn=log)
+                        data = load_tao(inp, log_fn=log,
+                                         bmad_lib=kwargs.get('bmad_lib'),
+                                         bmad_extra_paths=kwargs.get('bmad_extra_paths'))
                     elif code == 'elegant':
                         data = load_elegant(inp, log_fn=log)
                     elif code == 'xsuite':
@@ -1425,6 +1470,28 @@ if _HAVE_PYSIDE:
                 act = QAction(label, self)
                 act.triggered.connect(lambda _=False, f=p: self.w_input.setText(f))
                 self._recent_menu.addAction(act)
+
+        # ── Settings (machine-local, sticky — not part of presets) ─────────────
+
+        def _load_settings(self):
+            try:
+                import json
+                data = json.loads(self._SETTINGS_FILE.read_text())
+            except Exception:
+                return
+            self.w_bmad_lib.setText(data.get('bmad_lib', ''))
+            self.w_bmad_extra_paths.setText(data.get('bmad_extra_paths', ''))
+
+        def _save_settings(self):
+            import json
+            data = {
+                'bmad_lib':         self.w_bmad_lib.text().strip(),
+                'bmad_extra_paths': self.w_bmad_extra_paths.text().strip(),
+            }
+            try:
+                self._SETTINGS_FILE.write_text(json.dumps(data))
+            except Exception:
+                pass
 
         # ── Presets ───────────────────────────────────────────────────────────
 

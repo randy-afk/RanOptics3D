@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0] - 2026-09-22
+
+### New Features
+- **Bmad library path override** — new `bmad_lib`/`bmad_extra_paths` parameters (GUI: "Bmad library" / "Extra library dirs" fields on the Input tab, shown for the Tao backend; CLI: `--bmad-lib` / `--bmad-extra-paths`) let `pytao` be pointed at an explicit `libtao.so`/`.dylib`/`.dll`, bypassing its own auto-discovery. Needed for the new standalone executable build, which has no way to find a user's Bmad install on its own. Both GUI fields persist automatically across launches (`~/.ranoptics3d_settings.json`), independent of the named-preset system (library paths are machine-specific, presets are meant to be portable).
+- **Standalone executable releases** — new GitHub Actions workflow (`.github/workflows/build-executables.yml`) builds a self-contained PyInstaller binary for Linux/Windows/macOS on every published GitHub Release. Ported from the same solution already shipped for RanOptics (2D), including the explicit `RTLD_GLOBAL` library preloading that avoids a real `libssl.so.3` SONAME collision between Python's own `_ssl` module and Bmad's `libcurl.so.4`, and the matching conda-forge OpenSSL pin in CI.
+
+### Documentation
+- `docs/reference/backends.md`'s Tao/Bmad section now documents the Bmad library fields and how to locate `libtao.*` on a conda-forge or source Bmad install.
+- `README.md`'s Installation section now links to the standalone-executable downloads.
+
 ## [1.4.0] - 2026-07-31
 
 ### New Features
