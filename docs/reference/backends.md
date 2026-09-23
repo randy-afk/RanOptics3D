@@ -53,6 +53,21 @@ find "$ACC_ROOT_DIR" -name "libtao*" 2>/dev/null
 Select **ELEGANT** and point to your `.ele` run file. The `.flr`, `.twi`, and `.cen`
 output files must exist in the same directory (run ELEGANT first).
 
+RanOptics3D shells out to the `elegant` and `sddsconvert` binaries on your `PATH` —
+it doesn't bundle them. Whatever process launches RanOptics3D needs an environment
+where those are already runnable, which includes any environment variables ELEGANT
+itself needs — most notably `RPN_DEFNS` (pointing at `defns.rpn`), required for
+ELEGANT's RPN expression evaluator to work at all.
+
+!!! warning "Launch from a terminal, not by double-clicking"
+    A terminal-launched process inherits your full shell environment (`PATH`,
+    `RPN_DEFNS`, anything else you've exported). A double-clicked desktop icon
+    often only gets a minimal login/session environment, missing whatever you've
+    set up in `.bashrc` or similar — ELEGANT will either fail to launch, or run
+    but fail partway through with a confusing error if `defns.rpn` can't be
+    found. This applies to every backend and platform, not just ELEGANT, but
+    ELEGANT is the one most likely to actually break rather than just warn.
+
 ---
 
 ## MAD-X

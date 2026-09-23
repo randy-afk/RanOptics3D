@@ -55,6 +55,14 @@ No Python install needed — download a prebuilt binary from the
 - **Windows** — `RanOptics3D-Windows.exe`
 - **macOS** — `RanOptics3D-macOS`
 
+**Launch it from a terminal, not by double-clicking**, on every platform. A
+terminal-launched process inherits your full shell environment (`PATH` plus
+anything else you've exported); a double-clicked one often doesn't. This
+matters most for the ELEGANT backend, which shells out to the `elegant` /
+`sddsconvert` binaries and needs environment variables like `RPN_DEFNS`
+(pointing at `defns.rpn`) to already be set — see
+[ELEGANT](docs/reference/backends.md#elegant).
+
 If you use the Tao/Bmad backend, the standalone build needs to be pointed at your
 Bmad install explicitly — see [Bmad library path](docs/reference/backends.md#bmad-library-path).
 

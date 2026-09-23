@@ -2,6 +2,14 @@
 
 ---
 
+## v1.5.1 — 2026-09-23
+
+### Fixed
+
+- The standalone executable crashed on every render with a missing `panel_template.html` error — the build workflow's data-bundling step silently packaged nothing for `ranoptics3d`'s own resource files. Fixed by bundling them explicitly. Found via real macOS beta testing of the v1.5.0 release.
+
+---
+
 ## v1.5.0 — 2026-09-22
 
 ### New Features

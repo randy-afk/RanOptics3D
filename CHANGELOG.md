@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.1] - 2026-09-23
+
+### Fixed
+- The standalone executable crashed with `FileNotFoundError: .../ranoptics3d/_panel/panel_template.html` on every render — `--collect-data ranoptics3d` silently bundled nothing, since that PyInstaller hook needs installed-distribution metadata to find a package's data files, and `ranoptics3d` is never `pip install`ed in the build job (only its dependencies are). Replaced with explicit `--add-data` for the two files `_panel/builder.py` actually loads at runtime. Found via real macOS beta testing of the v1.5.0 release.
+
 ## [1.5.0] - 2026-09-22
 
 ### New Features

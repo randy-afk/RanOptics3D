@@ -107,9 +107,19 @@ jobs:
             EXTRA_ARGS+=(--add-binary "./openssl_env/lib/libssl.so.3:.")
             EXTRA_ARGS+=(--add-binary "./openssl_env/lib/libcrypto.so.3:.")
           fi
+          # --collect-data ranoptics3d does NOT work here: that hook relies on
+          # the package having installed-distribution metadata to discover
+          # data files from, and ranoptics3d is never pip-installed in this
+          # job (only its dependencies are) — it's just importable because
+          # its source directory happens to be on sys.path. It silently
+          # collects nothing in that case. _panel/builder.py loads its two
+          # files via importlib.resources.files(__package__), which resolves
+          # to _MEIPASS/ranoptics3d/_panel/<file> at runtime, so --add-data
+          # has to place them at that exact relative path explicitly.
           pyinstaller --onefile --noconsole --name RanOptics3D \
             --collect-all PySide6 --collect-all plotly --collect-all pytao \
-            --collect-data ranoptics3d \
+            --add-data "ranoptics3d/_panel/panel_template.html${{ matrix.data_sep }}ranoptics3d/_panel" \
+            --add-data "ranoptics3d/_panel/control.js${{ matrix.data_sep }}ranoptics3d/_panel" \
             "${EXTRA_ARGS[@]}" \
             RanOptics3D.py
 
